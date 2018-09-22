@@ -43,8 +43,8 @@ class TeleUser(models.Model):
     @property
     def url(self):
         if self.username:
-            # return "https://t.me/%s" % self.username
-            return "@%s" % self.username
+            return "https://t.me/%s" % self.username
+            # return "@%s" % self.username
 
         else:
             return None

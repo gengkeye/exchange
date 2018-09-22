@@ -3,28 +3,28 @@
 from __future__ import unicode_literals
 
 import telepot
+import re
+import uuid
+from django.conf import settings
+from django.utils import timezone
+
+
+from django.utils.translation import ugettext as _
+from django.core.exceptions import ValidationError
+
+from telepot.aio.helper import chat_flavors, inline_flavors
 from telepot.namedtuple import (
     InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultCachedPhoto,
     InlineKeyboardMarkup, InlineKeyboardButton, ForceReply, ReplyKeyboardMarkup, KeyboardButton, 
 )
-from django.conf import settings
-from django.utils.translation import ugettext as _
-from django.core.exceptions import ValidationError
-from telepot.aio.helper import UserHandler, InvoiceHandler, CallbackQueryOriginHandler, InlineUserHandler, ChatHandler, Monitor, AnswererMixin
+from telepot.aio.helper import (
+    UserHandler, InvoiceHandler, CallbackQueryOriginHandler, 
+    InlineUserHandler, ChatHandler, Monitor, AnswererMixin
+)
 from orderbot.models import (
     TeleUser, TeleImage, TeleGroup, TeleMembership, TeleProduct, TeleStore, TeleBalanceHistory,
     TeleOrder, TeleOrderItem, Bid
-) 
-from telepot.aio.helper import chat_flavors, inline_flavors
-from decimal import Decimal
-import uuid
-from django.db.models import Avg, Sum, Count, Value, Q
-from django.db.models.functions import Concat
-from .utils import convert_str_to_list, convert_str_to_num_list
-from django_mysql.models import GroupConcat
-from django.utils import timezone
-import re
-
+)
 
 class MessageHandler(UserHandler, AnswererMixin):
     def __init__(self, seed_tuple,
@@ -72,6 +72,7 @@ class MessageHandler(UserHandler, AnswererMixin):
             reply_to_message_id=msg_id,
             disable_notification=True,
             disable_web_page_preview=True,
+            parse_mode="Markdown"
         )
 
     def on_chosen_inline_result(self, msg):
@@ -144,31 +145,41 @@ class MessageHandler(UserHandler, AnswererMixin):
             selective=True
         )
         message = _('@%(username)s, please select currency pair.') % { "username": user.username }
-        return , keyboard_buttons
+        return message, keyboard_buttons
 
 
     def query_price(self, text, user):
         sell_currency, buy_currency = text.split('-')
-        # queryset =  Bid.objects.filter(
-        #     sell_currency=sell_currency,
-        #     buy_currency=buy_currency) \
-        #     .order_by('sell_currency', "buy_currency", '-price')
+        queryset =  Bid.objects.filter(
+            sell_currency=sell_currency,
+            buy_currency=buy_currency) \
+            .order_by('sell_currency', "buy_currency", '-price')
 
-        # message = _("Latest price of %(sell_currency)s to %(buy_currency)s is as below:") % {
-        #     "sell_currency": _(sell_currency),
-        #     "buy_currency": _(buy_currency),
-        # } + "\n\n"
-        
-        # message += '{:10}'.format(_("Price")) + \
-        #            '{:15}'.format(_("Amount")) + \
-        #            '{:15}'.format(_("Date")) + \
-        #            '{:15}'.format(_("Contact")) + '\n'
+        message = _("Latest price of %(sell_currency)s to %(buy_currency)s is as below:") % {
+            "sell_currency": _(sell_currency),
+            "buy_currency": _(buy_currency),
+        } + "\n\n"
 
-        # for bid in queryset:
-        #     message += '{:10}'.format(bid.price) + \
-        #                '{:15}'.format(bid.amount) + \
-        #                '{:15}'.format(bid.date_created) + \
-        #                '{:15}'.format("@%s"%user.username) + '\n'
+        message += """
+```
+%(price)s    %(amount)s    %(contact)s
+
+```
+        """ % {
+            "price": _("Price"),
+            "amount": _("Amount"),
+            "contact": _("Contact"),
+        }
+
+        for bid in queryset:
+            message += """
+`%(price)s   ``%(amount)s   `[%(name)s](%(url)s)
+            """  % {
+                "price": bid.price,
+                "amount": bid.max_amount,
+                "name": user.name,
+                "url": user.url
+            }
 
         return message
 
