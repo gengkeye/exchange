@@ -25,6 +25,7 @@ msgstr ""
 "/editbid -修改我的报价\n"
 "/deletebid -删除我的报价"
 
+
 msgid "USD"
 msgstr "美元"
 
@@ -90,3 +91,30 @@ msgstr "日期"
 
 msgid "Latest price of %(sell_currency)s to %(buy_currency)s is as below:"
 msgstr "%(sell_currency)s兑%(buy_currency)s最新报价如下："
+
+msgid "You should do this in private chat with me."
+msgstr "请与我私聊，谢谢"
+
+msgid "Price must be a float number within two decimal places."
+msgstr "输入不正确，请输入一个两位小数以内的数字，例如：6.83"
+
+msgid "Amount must be an integer between 10 and 10 millions."
+msgstr "输入不正确，请输入一个10到1千万之间的整数"
+
+msgid "please send me your price"
+msgstr "请把你要买入或卖出的价格发送给我"
+
+msgid "please send me your currency amount"
+msgstr "请把你要买入或卖出的数量发送给我"
+
+msgid "@%(username)s, you're creating a new bid, please tap keyboard to select a currency pair firstly."
+msgstr "@%(username)s，你在添加新的报价，首先请点击下方键盘选择一个货币对"
+
+msgid "@%(username)s, please select currency pair."
+msgstr "请点击下方键盘选择一个货币对"
+
+msgid "Congratulations, you created a new bid successfully!"
+msgstr "恭喜，你已成功添加一条报价信息！"
+
+msgid "please tap the keyboard below to select."
+msgstr "请点击下方键盘来回复我"

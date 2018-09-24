@@ -8,12 +8,14 @@ from django.conf import settings
 from config import env
 from django.utils.translation import ugettext as _
 
-from orderbot.models import TeleGroup, TeleOrder, TeleMembership
 import telepot
 import asyncio
 from telepot.aio.loop import MessageLoop
 from telepot.aio.delegate import pave_event_space, create_open, per_from_id
 from .telepot_utils import MessageHandler
+
+from orderbot.models import TeleGroup, TeleMembership
+
 
 TOKEN = settings.TELEGRAM_BOT['token']
 
