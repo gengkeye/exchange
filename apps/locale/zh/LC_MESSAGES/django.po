@@ -19,12 +19,18 @@ msgstr ""
 
 msgid "help_message"
 msgstr ""
-"您可以点击执行下面这些指令:\n"
-"/query -查看最新报价\n"
-"/newbid -我要添加报价\n"
-"/editbid -修改我的报价\n"
-"/deletebid -删除我的报价"
-
+"您可以【点击】执行下面这些指令:\n"
+"--------------------------------\n"
+"\n"
+"-发布个人报价点击 /new\n"
+"\n"
+"-查看全部报价点击 /query \n"
+"\n"
+"-查看个人报价点击 /list  \n"
+"\n"
+"本机器人，仅提供统计，所有人均可自由、免费发布信息，\n"
+"\n"
+"只为协助群友找到好的买卖。换汇仍请小心，注意诈骗。"
 
 msgid "USD"
 msgstr "美元"
@@ -108,13 +114,40 @@ msgid "please send me your currency amount"
 msgstr "请把你要买入或卖出的数量发送给我"
 
 msgid "@%(username)s, you're creating a new bid, please tap keyboard to select a currency pair firstly."
-msgstr "@%(username)s，你在添加新的报价，首先请点击下方键盘选择一个货币对"
+msgstr "@%(username)s，你在发布新的报价，首先请点击下方键盘选择一个货币对"
 
 msgid "@%(username)s, please select currency pair."
 msgstr "请点击下方键盘选择一个货币对"
 
 msgid "Congratulations, you created a new bid successfully!"
-msgstr "恭喜，你已成功添加一条报价信息！"
+msgstr "恭喜，你已成功发布一条报价信息！"
 
 msgid "please tap the keyboard below to select."
 msgstr "请点击下方键盘来回复我"
+
+msgid "Credit Level"
+msgstr "信用评级"
+
+msgid "Action"
+msgstr "动作"
+
+msgid "Hi, %(name)s! Your current credit level is %(credit_level)s. And Your bids history is as following:"
+msgstr "%(name)s，您当前的信用评级是%(credit_level)s，您的记录报价信息如下："
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "clear"
+msgstr "清空所有"
+
+msgid "Already cleared"
+msgstr "已清空"
+
+msgid "Get /help"
+msgstr "点击获取帮助: /help"
+
+msgid "IN"
+msgstr "入"
+
+msgid "OUT"
+msgstr "出"

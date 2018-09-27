@@ -30,20 +30,13 @@ class TeleUser(models.Model):
     chat_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     name = models.CharField(max_length=20, blank=True, null=True)
     username = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    short_name = models.CharField(max_length=10, unique=True, blank=True, null=True)
     role = models.CharField(choices=ROLE_CHOICES, default='User', max_length=20, blank=True)
     credit_level = models.CharField(choices=CREDIT_LEVEL_CHOICES, default='A', max_length=20, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
-
-    @property
-    def url(self):
-        if self.username:
-            return "https://t.me/%s" % self.username
-            # return "@%s" % self.username
-        else:
-            return None
 
     @property
     def is_admin(self):
@@ -58,7 +51,6 @@ class TeleUser(models.Model):
             return True
         else:
             return False
-
 
 @python_2_unicode_compatible
 class TeleImage(models.Model):

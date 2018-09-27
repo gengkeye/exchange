@@ -7,6 +7,7 @@ import re
 import uuid
 from django.conf import settings
 from django.utils import timezone
+from time import sleep
 
 from django.utils.translation import ugettext as _
 from django.core.exceptions import ValidationError
@@ -21,6 +22,8 @@ from telepot.aio.helper import (
     UserHandler, InvoiceHandler, CallbackQueryOriginHandler, 
     InlineUserHandler, ChatHandler, Monitor, AnswererMixin
 )
+from telepot.text import apply_entities_as_markdown
+from .utils import get_object_or_none
 from orderbot.models import TeleUser, TeleImage, TeleGroup, TeleMembership, Bid
 
 wizards = {}
@@ -42,11 +45,10 @@ class MessageHandler(UserHandler, AnswererMixin):
     async def on_chat_message(self, msg):
         content_type, chat_type, chat_id, msg_date, msg_id = telepot.glance(msg, flavor='chat', long=True)
         group, user = self.get_group_and_user(msg)
-
-        # init
-        message =  _('tele_invalid_message')
+        message =  ''
         reply_markup = None
         parse_mode = None
+        rtn_id = chat_id
 
         if group:
             TeleMembership.objects.get_or_create(group=group, user=user)
@@ -74,20 +76,39 @@ class MessageHandler(UserHandler, AnswererMixin):
         if content_type == 'text':
             text = msg['text']
             if text.startswith('/help'):
-                message = _('help_message')
+                message = apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
+                reply_markup = ReplyKeyboardMarkup(
+                    keyboard = [
+                        [KeyboardButton(text='/query 查看报价')],
+                        [KeyboardButton(text='/list 查看我的报价记录')],
+                        [KeyboardButton(text='/new 发布报价')],
+                    ],
+                    one_time_keyboard = False,
+                    selective=True
+                )
+                parse_mode="Markdown"
             elif text.startswith('/query'):
                 message = _("@%(username)s, please select currency pair.") % { "username": user.username }
                 reply_markup = default_reply_markup
 
-            elif text.startswith('/newbid'):
-                message = self.new_bid_command(group, user)
-                reply_markup = default_reply_markup
+            elif text.startswith('/list'):
+                message = self.list_command(user)
+                rtn_id = user.chat_id
+                parse_mode="Markdown"
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(text=_('clear'), callback_data="/clear"),
+                        ],
+                    ]
+                )
 
-            elif text.startswith('/editbid'):
-                message = self.edit_bid_command(text, group, user)
-
-            elif text.startswith('/deletebid'):
-                message = self.delete_bid_command(text, group, user)
+            elif text.startswith('/new'):
+                if group:
+                    message = _('You should do this in private chat with me.')
+                else:
+                    message = self.new_command(user)
+                    reply_markup = default_reply_markup
 
             else:
                 try:
@@ -95,18 +116,18 @@ class MessageHandler(UserHandler, AnswererMixin):
                 except:
                     if re.search('^[A-Z]{3}-[A-Z]{3}$', text):
                         message = self.query_price(text, user)
-                        reply_markup = default_reply_markup
                         parse_mode="Markdown"
 
-        await self.bot.sendMessage(
-            chat_id=chat_id,
-            text=message,
-            reply_markup=reply_markup,
-            reply_to_message_id=msg_id,
-            disable_notification=True,
-            disable_web_page_preview=True,
-            parse_mode=parse_mode
-        )
+        if message:
+            await self.bot.sendMessage(
+                chat_id=rtn_id,
+                text=message,
+                reply_markup=reply_markup,
+                reply_to_message_id=msg_id,
+                disable_notification=False,
+                disable_web_page_preview=False,
+                parse_mode=parse_mode
+            )
 
     def on_chosen_inline_result(self, msg):
         result_id, from_id, query_string = telepot.glance(msg, flavor='chosen_inline_result')
@@ -115,7 +136,11 @@ class MessageHandler(UserHandler, AnswererMixin):
     async def on_callback_query(self, msg):
         query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
         print('Callback Query:', query_id, from_id, query_data)
-        await self.bot.answerCallbackQuery(query_id, text='Got it')
+        user = get_object_or_none(TeleUser, chat_id=from_id)
+        if user:
+            user.bids.all().delete()
+
+        await self.bot.answerCallbackQuery(query_id, text=_('Already cleared'))
 
     async def on_shipping_query(msg):
         query_id, from_id, invoice_payload = telepot.glance(msg, flavor='shipping_query')
@@ -149,21 +174,17 @@ class MessageHandler(UserHandler, AnswererMixin):
     def query_price(self, text, user):
         sell_currency, buy_currency = text.split('-')
         queryset =  Bid.objects.filter(
-            sell_currency=sell_currency,
-            buy_currency=buy_currency) \
-            .order_by('sell_currency', "buy_currency", '-price')
+            sell_currency=buy_currency,
+            buy_currency=sell_currency) \
+            .order_by("-date_created")[:50]
 
-        message = _("Latest price of %(sell_currency)s to %(buy_currency)s is as below:") % {
-            "sell_currency": _(sell_currency),
-            "buy_currency": _(buy_currency),
-        } + "\n\n"
-
-        message += """
+        message = """
 ```
-%(price)s       %(amount)s       %(contact)s
-
+ %(sell)s    %(buy)s  %(price)s    %(contact)s
 ```
         """ % {
+            "sell": _("OUT"),
+            "buy": _("IN"),
             "price": _("Price"),
             "amount": _("Amount"),
             "contact": _("Contact"),
@@ -171,16 +192,19 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         for bid in queryset:
             message += """
-`%(price)s%(pspace)s``%(amount)s%(aspace)s`[%(name)s](%(url)s)
+`%(sell)s%(sspace)s``%(buy)s%(bspace)s``%(price)s%(pspace)s`[%(short_name)s](tg://user?id=%(chat_id)s)
             """  % {
+                "sell": _(bid.sell_currency),
+                "sspace": " "*(7-2*(len(bid.sell_currency))),
+                "buy": _(bid.buy_currency),
+                "bspace": " "*(7-2*(len(bid.buy_currency))),
                 "price": bid.price,
-                "pspace":" "*(10-len(str(bid.price))),
-                "amount": bid.max_amount,
-                "aspace":" "*(10-len(str(bid.max_amount))),
-                "name": user.name,
-                "url": user.url,
+                "pspace":" "*(7-len(str(bid.price))),
+                "short_name": bid.user.short_name,
+                "chat_id": bid.user.chat_id,
             }
 
+        message += "\n\n" + apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
         return message
 
     def plain_text(self, text, user):
@@ -192,8 +216,12 @@ class MessageHandler(UserHandler, AnswererMixin):
                 h["rtn_err_msgs"].pop()
                 h['msg_arr'].append(text)
                 if len(h['conditions']) == 0:
-                    if h["type"] == "newbid":
+                    if h["type"] == "new":
                         sell_currency, buy_currency = h['msg_arr'][0].split('-')
+                        Bid.objects.filter(
+                            sell_currency=sell_currency,
+                            buy_currency=buy_currency,
+                            user=user).delete()
                         Bid.objects.create(
                             sell_currency=sell_currency,
                             buy_currency=buy_currency,
@@ -201,10 +229,6 @@ class MessageHandler(UserHandler, AnswererMixin):
                             price=h['msg_arr'][2],
                             user=user
                         )
-                    elif h["type"] == "editbid":
-                        pass
-                    elif h["type"] == "deletebid":
-                        pass
 
                 return h["rtn_msgs"].pop()
             else:
@@ -212,41 +236,57 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         else:
             h.clear()
-            raise "hi,ann"
+            raise "ERROR"
 
+    def list_command(self, user):
+        queryset =  Bid.objects.filter(user=user).order_by("-date_created")
+        message = """
+```
+%(sell)s  %(buy)s  %(price)s      %(date)s
+```
+        """ % {
+            "sell": _("Sell"),
+            "buy": _("Buy"),
+            "price": _("Price"),
+            "date": _("Date"),
+        }
 
-    def new_bid_command(self, group, user):
-        if group:
-            return _('You should do this in private chat with me.')
-        else:
-            wizards[user.chat_id] = {
-                "type": 'newbid',
-                "conditions": [
-                    '^[-+]?[0-9]*\.?[0-9]{1,2}$',
-                    '^[1-9][0-9]{1,7}$',
-                    '^[A-Z]{3}-[A-Z]{3}$'
-                ],
-                "rtn_msgs": [
-                    _("Congratulations, you created a new bid successfully!"),
-                    _("please send me your price"),
-                    _("please send me your currency amount"),
-                ],
-                "rtn_reply_markup": [None, None, None],
-                "rtn_err_msgs": [ 
-                    _("Price must be a float number within two decimal places."), 
-                    _("Amount must be an integer between 10 and 10 millions."),
-                    _("please tap the keyboard below to select."),
-                ],
-                "msg_arr": [],
+        for bid in queryset:
+            message += """
+`%(sell)s  ``%(buy)s  ``%(price)s%(pspace)s``%(date)s`
+            """  % {
+                "sell": bid.sell_currency,
+                "buy": bid.buy_currency,
+                "price": bid.price,
+                "pspace":" "*(8-len(str(bid.price))),
+                "date":bid.date_created.date(),
             }
-            return _("@%(username)s, you're creating a new bid, please tap keyboard to select a currency pair firstly.") % { "username": user.username }
 
+        return message
 
-    def edit_bid_command(self, text, group, user):
-        pass
+    def new_command(self, user):
+        wizards[user.chat_id] = {
+            "type": 'new',
+            "conditions": [
+                '^[-+]?[0-9]*\.?[0-9]{1,2}$',
+                '^[1-9][0-9]{1,7}$',
+                '^[A-Z]{3}-[A-Z]{3}$'
+            ],
+            "rtn_msgs": [
+                _("Congratulations, you created a new bid successfully!") + "\n\n\n" + _("help_message"),
+                _("please send me your price"),
+                _("please send me your currency amount"),
+            ],
+            "rtn_reply_markup": [None, None, None],
+            "rtn_err_msgs": [ 
+                _("Price must be a float number within two decimal places."), 
+                _("Amount must be an integer between 10 and 10 millions."),
+                _("please tap the keyboard below to select."),
+            ],
+            "msg_arr": [],
+        }
+        return _("@%(username)s, you're creating a new bid, please tap keyboard to select a currency pair firstly.") % { "username": user.username }
 
-    def delete_bid_command(self, text, group, user):
-        pass
 
     def get_group_and_user(self, msg, flavor='chat'):
         name = msg['from']['first_name']
@@ -255,6 +295,7 @@ class MessageHandler(UserHandler, AnswererMixin):
             username = msg['from']['username']
         except:
             username = None
+
         if flavor == 'inline_query':
             group = None
         elif flavor == 'chat': 
@@ -272,16 +313,17 @@ class MessageHandler(UserHandler, AnswererMixin):
         try:
             user = TeleUser.objects.get(chat_id=chat_id)
         except:
-            user = TeleUser.objects.create(chat_id=chat_id)
-        else:
-            if user.username != username:
-                user.username = username
-                user.save()
+            user = TeleUser.objects.create(chat_id=chat_id, name=name, username=username)
+        
+        if user.username != username:
+            user.username = username
+            user.save()
 
-            if user.name != name:
-                user.name = name
-                user.save()
-            return user  
+        if user.name != name:
+            user.name = name
+            user.save()
+
+        return user  
             
 
     def get_and_update_or_create_group(self, title, chat_id):
