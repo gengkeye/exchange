@@ -23,10 +23,8 @@ from telepot.aio.helper import (
     InlineUserHandler, ChatHandler, Monitor, AnswererMixin
 )
 from telepot.text import apply_entities_as_markdown
-from .utils import get_object_or_none
+from .utils import get_object_or_none, trans, convert_str_to_list
 from orderbot.models import TeleUser, TeleImage, TeleGroup, TeleMembership, Bid
-
-wizards = {}
 
 class MessageHandler(UserHandler, AnswererMixin):
     def __init__(self, seed_tuple,
@@ -47,7 +45,7 @@ class MessageHandler(UserHandler, AnswererMixin):
         group, user = self.get_group_and_user(msg)
         message =  ''
         reply_markup = None
-        parse_mode = None
+        parse_mode = "Markdown"
         rtn_id = chat_id
 
         if group:
@@ -56,8 +54,7 @@ class MessageHandler(UserHandler, AnswererMixin):
             msg_id = None
         
         rows = []
-        allc = settings.SUPPORT_CURRENCIES
-        for i in allc:
+        for i in ['人民币', '美元', '皮索']:
             rows.append([
                 KeyboardButton(
                     text=i,
@@ -72,53 +69,22 @@ class MessageHandler(UserHandler, AnswererMixin):
         if content_type == 'text':
             text = msg['text']
             if text.startswith('/help'):
-                try:
-                    wizards[user.chat_id].clear()
-                except:
-                    pass 
-                if group:
-                    message += """
-
-
-            
-`-发布个人报价点击` [@oldsevenbot](https://telegram.me/oldsevenbot)
-
-`-查看全部报价点击` [/query](tg:///query)
-
-`-查看个人报价点击` [/list](tg:///list)
-
-`本机器人，仅提供统计，所有人均可自由、免费发布信息，`
-
-`只为协助群友找到好的买卖。换汇仍请小心，注意诈骗。`
-"""
-                else:
-                    message = apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
+                message = apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
                 reply_markup = ReplyKeyboardMarkup(
                     keyboard = [
                         [KeyboardButton(text='/query 查看报价')],
                         [KeyboardButton(text='/list 查看我的报价记录')],
-                        [KeyboardButton(text='/new 发布报价')],
                     ],
                     one_time_keyboard = False,
                     selective=True
                 )
-                parse_mode="Markdown"
             elif text.startswith('/query'):
-                try:
-                    wizards[user.chat_id].clear()
-                except:
-                    pass 
                 message = _("@%(username)s, please select currency pair.") % { "username": user.username }
                 reply_markup = default_reply_markup
 
             elif text.startswith('/list'):
-                try:
-                    wizards[user.chat_id].clear()
-                except:
-                    pass
                 message = self.list_command(user)
                 rtn_id = user.chat_id
-                parse_mode="Markdown"
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
@@ -127,28 +93,19 @@ class MessageHandler(UserHandler, AnswererMixin):
                     ]
                 )
 
-            elif text.startswith('/new'):
-                try:
-                    wizards[user.chat_id].clear()
-                except:
-                    pass 
-                if group:
-                    message = _('You should do this in private chat with me.')
-                else:
-                    message = self.new_command(user)
-                    reply_markup = default_reply_markup
-
+            elif text.startswith('/rate'):
+                for r in Rate.objects.all():
+                    message += """
+```
+%(sell)s -> %(buy)s   %(price)s
+```
+                    """ % {
+                        "sell": _(r.sell_currency),
+                        "buy": _(r.buy_currency),
+                        "price": r.price,
+                    }
             else:
-                try:
-                    message = self.plain_text(text, user)
-                except:
-                    try:
-                        wizards[user.chat_id].clear()
-                    except:
-                        pass
-                    if re.search('^[A-Z]{3}$', text.strip()):
-                        message = self.query_price(text.strip(), group, user)
-                        parse_mode="Markdown"
+                message = self.plain_text(text, user)
 
         if message:
             await self.bot.sendMessage(
@@ -203,83 +160,38 @@ class MessageHandler(UserHandler, AnswererMixin):
         await bot.answerPreCheckoutQuery(query_id, True)
 
 
-    def query_price(self, text, group, user):
-        sell_currency = text.strip()
-        queryset =  Bid.objects.filter(sell_currency=sell_currency) \
+    def query_price(self, text, user):
+        queryset =  Bid.objects.filter(sell_currency=trans(text)) \
             .order_by("-date_created", "buy_currency")[:50]
-
-        message = """
-```
- %(sell)s    %(buy)s  %(price)s    %(contact)s
-```
-        """ % {
-            "sell": _("OUT"),
-            "buy": _("IN"),
-            "price": _("Price"),
-            "amount": _("Amount"),
-            "contact": _("Contact"),
-        }
-
+        message = ''
         for bid in queryset:
             message += """
-`%(sell)s%(sspace)s``%(buy)s%(bspace)s``%(price)s%(pspace)s`[%(short_name)s](tg://user?id=%(chat_id)s)
+`%(sell)s ``-> ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
             """  % {
                 "sell": _(bid.sell_currency),
-                "sspace": " "*(7-2*(len(bid.sell_currency))),
                 "buy": _(bid.buy_currency),
-                "bspace": " "*(7-2*(len(bid.buy_currency))),
                 "price": bid.price,
-                "pspace":" "*(7-len(str(bid.price))),
-                "short_name": bid.user.short_name,
+                "short_name": bid.user.name,
                 "chat_id": bid.user.chat_id,
             }
-
-        if group:
-            message += """
-
-
-
-`-发布个人报价点击` [@oldsevenbot](https://telegram.me/oldsevenbot)
-
-`-查看全部报价点击` [/query](tg:///query)
-
-`-查看个人报价点击` [/list](tg:///list)
-
-`本机器人，仅提供统计，所有人均可自由、免费发布信息，`
-
-`只为协助群友找到好的买卖。换汇仍请小心，注意诈骗。`
-"""
-        else:
-            message += "\n\n" + apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
-
+        message += "\n\n" + apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
         return message
 
-    def plain_text(self, text, user):
-        chatId = user.chat_id
-        h = wizards[chatId]
-        if len(h["conditions"]) > 0:
-            if re.search(h['conditions'][-1], text):
-                h['conditions'].pop()
-                h["rtn_err_msgs"].pop()
-                h['msg_arr'].append(text)
-                if len(h['conditions']) == 0 and  h["type"] == "new" and h['msg_arr'][0] != h['msg_arr'][1]:
-                    Bid.objects.filter(
-                        sell_currency=h['msg_arr'][0],
-                        buy_currency=h['msg_arr'][1],
-                        user=user).delete()
-                    Bid.objects.create(
-                        sell_currency=h['msg_arr'][0],
-                        buy_currency=h['msg_arr'][1],
-                        price=h['msg_arr'][2],
-                        user=user
-                    )
-                return h["rtn_msgs"].pop()
-            else:
-                return h["rtn_err_msgs"][-1]
 
-        else:
-            h.clear()
-            raise "ERROR"
+    def plain_text(self, text, user):
+        text_arr = convert_str_to_list(text)
+        if len(text_arr) == 1 and trans(text_arr[0]):
+            return self.query_price(text_arr[0], user)
+        if len(text_arr) == 3:
+            sell = trans(text_arr[0])
+            buy = trans(text_arr[1])
+            price = text_arr[2]
+            if sell and buy and re.search('^[-+]?[0-9]*\.?[0-9]{1,2}$', price):
+                Bid.objects.filter(sell_currency=sell, buy_currency=buy).delete()
+                Bid.objects.create(sell_currency=sell, buy_currency=buy, price=price, user=user)
+                return apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
+        return None
+
 
     def list_command(self, user):
         queryset =  Bid.objects.filter(user=user).order_by("-date_created")
@@ -306,28 +218,6 @@ class MessageHandler(UserHandler, AnswererMixin):
             }
 
         return message
-
-    def new_command(self, user):
-        wizards[user.chat_id] = {
-            "type": 'new',
-            "conditions": [
-                '^[-+]?[0-9]*\.?[0-9]{1,2}$',
-                '^[A-Z]{3}$',
-                '^[A-Z]{3}$',
-            ],
-            "rtn_msgs": [
-                _("Congratulations, you created a new bid successfully!") + "\n\n\n" + _("help_message"),
-                _("please send me your price"),
-                _("please send me the currency you wanna buy"),
-            ],
-            "rtn_err_msgs": [ 
-                _("Price must be a float number within two decimal places."), 
-                _("please tap the keyboard below to select."),
-                _("please tap the keyboard below to select."),
-            ],
-            "msg_arr": [],
-        }
-        return _("please send me the currency you wanna sell") % { "username": user.username }
 
 
     def get_group_and_user(self, msg, flavor='chat'):

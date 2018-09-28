@@ -27,6 +27,10 @@ class Config:
     # DEBUG, INFO, WARNING, ERROR, CRITICAL can set. See https://docs.djangoproject.com/en/1.10/topics/logging/
     LOG_LEVEL = 'DEBUG'
 
+    HTTP_BIND_HOST = '0.0.0.0'
+
+    HTTP_LISTEN_PORT = 8080
+
     # mysql database
     DB_ENGINE = 'mysql'
     DB_NAME = 'exchange'
@@ -84,8 +88,10 @@ class ProductionConfig(Config):
     EMAIL_SUBJECT_PREFIX = '[Jumpserver] '
     SITE_URL = 'http://172.16.22.223:8080'
 
-config = {
-    'production': ProductionConfig,
-}
+# config = {
+#     'production': ProductionConfig,
+# }
 
-env = 'production'
+# env = 'production'
+
+config = ProductionConfig()

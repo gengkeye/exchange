@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'orderbot.apps.OrderbotConfig',
     'django_extensions',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
