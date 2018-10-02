@@ -29,11 +29,15 @@ FEE = 2
 
 # Import project config setting
 try:
-    from config import config as env_config, env
-
-    CONFIG = env_config.get(env, 'default')()
+    from config import config as CONFIG
 except ImportError:
-    CONFIG = type('_', (), {'__getattr__': lambda arg1, arg2: None})()
+    msg = """
+
+    Error: No config file found.
+
+    You can run `cp config_example.py config.py`, and edit it.
+    """
+    raise ImportError(msg)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
