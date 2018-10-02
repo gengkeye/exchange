@@ -7,9 +7,9 @@ from django.conf import settings
 
 
 # set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'orderbot.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'exchange.settings')
 
-app = Celery('orderbot', broker=settings.BROKER_URL)
+app = Celery('exchange', broker=settings.BROKER_URL)
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.

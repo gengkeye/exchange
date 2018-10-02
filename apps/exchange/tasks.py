@@ -16,7 +16,7 @@ from telepot.aio.delegate import pave_event_space, create_open, per_from_id
 from .telepot_utils import MessageHandler
 from forex_python.converter import CurrencyRates
 
-from orderbot.models import TeleGroup, TeleMembership, Rate
+from exchange.models import TeleGroup, TeleMembership, Rate
 from .utils import register_as_period_task, after_app_shutdown_clean, after_app_ready_start
 from .celery import app as celery_app
 

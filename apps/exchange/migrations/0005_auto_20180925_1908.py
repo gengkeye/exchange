@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orderbot', '0004_teleuser_short_name'),
+        ('exchange', '0004_teleuser_short_name'),
     ]
 
     operations = [

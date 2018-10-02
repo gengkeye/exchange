@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'orderbot.apps.OrderbotConfig',
+    'exchange.apps.ExchangeConfig',
     'django_extensions',
     'django_celery_beat',
 ]
@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ROOT_URLCONF = 'orderbot.urls'
+# ROOT_URLCONF = 'exchange.urls'
 
 TEMPLATES = [
     {
@@ -88,7 +88,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'orderbot.wsgi.application'
+WSGI_APPLICATION = 'exchange.wsgi.application'
 
 
 # Database

@@ -24,7 +24,7 @@ from telepot.aio.helper import (
 )
 from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list
-from orderbot.models import TeleUser, TeleImage, TeleGroup, TeleMembership, Bid
+from exchange.models import TeleUser, TeleImage, TeleGroup, TeleMembership, Bid
 
 class MessageHandler(UserHandler, AnswererMixin):
     def __init__(self, seed_tuple,

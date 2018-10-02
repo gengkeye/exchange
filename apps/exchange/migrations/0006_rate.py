@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orderbot', '0005_auto_20180925_1908'),
+        ('exchange', '0005_auto_20180925_1908'),
     ]
 
     operations = [
