@@ -4,13 +4,16 @@
 from threading import Thread
 import os
 import subprocess
-
 try:
-    from config import config as env_config, env
-
-    CONFIG = env_config.get(env, 'default')()
+    from config import config as CONFIG
 except ImportError:
-    CONFIG = type('_', (), {'__getattr__': None})()
+    msg = """
+
+    Error: No config file found.
+
+    You can run `cp config_example.py config.py`, and edit it.
+    """
+    raise ImportError(msg)
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +26,7 @@ def start_celery():
     os.environ.setdefault('C_FORCE_ROOT', '1')
     os.environ.setdefault('PYTHONOPTIMIZE', '1')
     print('start celery')
-    subprocess.call('celery -E -A orderbot worker -B -s /tmp/celerybeat-schedule -l debug', shell=True)
+    subprocess.call('celery -E -A exchange worker -B -s /tmp/celerybeat-schedule -l debug', shell=True)
 
 
 def main():

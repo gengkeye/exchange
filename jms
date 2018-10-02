@@ -156,7 +156,7 @@ def start_celery():
 
     cmd = [
         'celery', 'worker',
-        '-A',  'orderbot',
+        '-A',  'exchange',
         '-l', LOG_LEVEL.lower(),
         '--pidfile', pid_file,
         '-c', str(WORKERS),
@@ -183,11 +183,11 @@ def start_beat():
     scheduler = "django_celery_beat.schedulers:DatabaseScheduler"
     cmd = [
         'celery',  'beat',
-        '-A', 'orderbot',
+        '-A', 'exchange',
         '--pidfile', pid_file,
         '-l', LOG_LEVEL,
         '--scheduler', scheduler,
-        '--max-interval', '60'
+        '--max-interval', '30'
     ]
     if DAEMON:
         cmd.extend([
