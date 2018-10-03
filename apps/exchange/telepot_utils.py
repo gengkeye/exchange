@@ -4,27 +4,14 @@ from __future__ import unicode_literals
 
 import telepot
 import re
-import uuid
-from django.conf import settings
-from django.utils import timezone
-from time import sleep
 
 from django.utils.translation import ugettext as _
-from django.core.exceptions import ValidationError
 
 from telepot.aio.helper import chat_flavors, inline_flavors
-from telepot.namedtuple import (
-    InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultCachedPhoto,
-    InlineKeyboardMarkup, InlineKeyboardButton, ForceReply, ReplyKeyboardMarkup, KeyboardButton,
-    MessageEntity
-)
-from telepot.aio.helper import (
-    UserHandler, InvoiceHandler, CallbackQueryOriginHandler, 
-    InlineUserHandler, ChatHandler, Monitor, AnswererMixin
-)
+from telepot.aio.helper import UserHandler, AnswererMixin
 from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list
-from exchange.models import TeleUser, TeleImage, TeleGroup, TeleMembership, Bid
+from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate
 
 class MessageHandler(UserHandler, AnswererMixin):
     def __init__(self, seed_tuple,
@@ -43,75 +30,26 @@ class MessageHandler(UserHandler, AnswererMixin):
     async def on_chat_message(self, msg):
         content_type, chat_type, chat_id, msg_date, msg_id = telepot.glance(msg, flavor='chat', long=True)
         group, user = self.get_group_and_user(msg)
-        message =  ''
-        reply_markup = None
-        parse_mode = "Markdown"
+        message = parse_mode = None
         rtn_id = chat_id
 
         if group:
             TeleMembership.objects.get_or_create(group=group, user=user)
         else:
             msg_id = None
-        
-        rows = []
-        for i in ['人民币', '美元', '皮索']:
-            rows.append([
-                KeyboardButton(
-                    text=i,
-                )
-            ])
 
-        default_reply_markup = ReplyKeyboardMarkup(
-            keyboard = rows,
-            one_time_keyboard = False,
-            selective=True
-        )
         if content_type == 'text':
             text = msg['text']
             if text.startswith('/help'):
-                message = apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
-                reply_markup = ReplyKeyboardMarkup(
-                    keyboard = [
-                        [KeyboardButton(text='/query 查看报价')],
-                        [KeyboardButton(text='/list 查看我的报价记录')],
-                    ],
-                    one_time_keyboard = False,
-                    selective=True
-                )
-            elif text.startswith('/query'):
-                message = _("@%(username)s, please select currency pair.") % { "username": user.username }
-                reply_markup = default_reply_markup
-
-            elif text.startswith('/list'):
-                message = self.list_command(user)
-                rtn_id = user.chat_id
-                reply_markup=InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(text=_('clear'), callback_data="/clear"),
-                        ],
-                    ]
-                )
-
-            elif text.startswith('/rate'):
-                for r in Rate.objects.all():
-                    message += """
-```
-%(sell)s -> %(buy)s   %(price)s
-```
-                    """ % {
-                        "sell": _(r.sell_currency),
-                        "buy": _(r.buy_currency),
-                        "price": r.price,
-                    }
+                message = _("help_message")
             else:
                 message = self.plain_text(text, user)
+                parse_mode = "Markdown"
 
         if message:
             await self.bot.sendMessage(
                 chat_id=rtn_id,
                 text=message,
-                reply_markup=reply_markup,
                 reply_to_message_id=msg_id,
                 disable_notification=False,
                 disable_web_page_preview=False,
@@ -131,42 +69,16 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         await self.bot.answerCallbackQuery(query_id, text=_('Already cleared'))
 
-    async def on_shipping_query(msg):
-        query_id, from_id, invoice_payload = telepot.glance(msg, flavor='shipping_query')
-
-        print('Shipping query:')
-        print(query_id, from_id, invoice_payload)
-        pprint(msg)
-        print(ShippingQuery(**msg))
-
-        await bot.answerShippingQuery(
-            query_id, True,
-            shipping_options=[
-                ShippingOption(id='fedex', title='FedEx', prices=[
-                    LabeledPrice(label='Local', amount=345),
-                    LabeledPrice(label='International', amount=2345)]),
-                ShippingOption(id='dhl', title='DHL', prices=[
-                    LabeledPrice(label='Local', amount=342),
-                    LabeledPrice(label='International', amount=1234)])])
-
-    async def on_pre_checkout_query(msg):
-        query_id, from_id, invoice_payload, currency, total_amount = telepot.glance(msg, flavor='pre_checkout_query', long=True)
-
-        print('Pre-Checkout query:')
-        print(query_id, from_id, invoice_payload, currency, total_amount)
-        pprint(msg)
-        print(PreCheckoutQuery(**msg))
-
-        await bot.answerPreCheckoutQuery(query_id, True)
-
 
     def query_price(self, text, user):
         queryset =  Bid.objects.filter(sell_currency=trans(text)) \
             .order_by("-date_created", "buy_currency")[:50]
-        message = ''
+        message = """
+*当前已有%s位商家报价：*
+        """ % queryset.count()
         for bid in queryset:
             message += """
-`%(sell)s ``-> ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
+`%(sell)s ``换 ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
             """  % {
                 "sell": _(bid.sell_currency),
                 "buy": _(bid.buy_currency),
@@ -174,14 +86,29 @@ class MessageHandler(UserHandler, AnswererMixin):
                 "short_name": bid.user.name,
                 "chat_id": bid.user.chat_id,
             }
-        message += "\n\n" + apply_entities_as_markdown(_("help_message"), [{"offset":1, "length":10, "type": "bold"}])
         return message
 
 
     def plain_text(self, text, user):
         text_arr = convert_str_to_list(text)
-        if len(text_arr) == 1 and trans(text_arr[0]):
-            return self.query_price(text_arr[0], user)
+        if len(text_arr) == 1:
+            if trans(text_arr[0]):
+                message = self.query_price(text_arr[0], user)
+            elif text_arr[0]=='即时汇率':
+                message = """
+*当前时时汇率如下，数据来自欧洲中央银行：*
+"""
+                for r in Rate.objects.all():
+                    message += """
+```
+%(sell)s -> %(buy)s   %(price)s
+```
+                """ % {
+                    "sell": _(r.sell_currency),
+                    "buy": _(r.buy_currency),
+                    "price": r.price,
+                }
+
         if len(text_arr) == 3:
             sell = trans(text_arr[0])
             buy = trans(text_arr[1])
@@ -189,34 +116,7 @@ class MessageHandler(UserHandler, AnswererMixin):
             if sell and buy and re.search('^[-+]?[0-9]*\.?[0-9]{1,2}$', price):
                 Bid.objects.filter(sell_currency=sell, buy_currency=buy).delete()
                 Bid.objects.create(sell_currency=sell, buy_currency=buy, price=price, user=user)
-                return apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
-        return None
-
-
-    def list_command(self, user):
-        queryset =  Bid.objects.filter(user=user).order_by("-date_created")
-        message = """
-```
-%(sell)s  %(buy)s  %(price)s      %(date)s
-```
-        """ % {
-            "sell": _("Sell"),
-            "buy": _("Buy"),
-            "price": _("Price"),
-            "date": _("Date"),
-        }
-
-        for bid in queryset:
-            message += """
-`%(sell)s  ``%(buy)s  ``%(price)s%(pspace)s``%(date)s`
-            """  % {
-                "sell": bid.sell_currency,
-                "buy": bid.buy_currency,
-                "price": bid.price,
-                "pspace":" "*(8-len(str(bid.price))),
-                "date":bid.date_created.date(),
-            }
-
+                message = apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
         return message
 
 

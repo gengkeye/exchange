@@ -35,11 +35,16 @@ def get_object_or_none(model, **kwargs):
 def trans(text):
     h = {
         "人民币": "CNY",
-        "美元": "USD",
-        "皮索": "PHP",
         "CNY": "CNY",
+        "美元": "USD",
+        "美金": "USD",
         "USD": "USD",
+        "皮索": "PHP",
         "PHP": "PHP",
+        "比索": "PHP",
+        "台币": "TWD",
+        "新台币": "TWD",
+        "TWD": "TWD",
     }
     try:
         return h[text.strip().upper()]
