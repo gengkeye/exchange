@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from celery import shared_task
 from celery.signals import celeryd_init
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 import telepot
 import asyncio
@@ -22,22 +23,31 @@ bot1 = telepot.Bot(TOKEN)
 
 @shared_task
 def send_message(message_id, content):
-	bot1.sendMessage(message_id, content)
+    bot1.sendMessage(message_id, content)
 
 
 @shared_task
-def send_group_notice(text):
-	for group in TeleGroup.objects.all():
-		try:
-			bot1.sendMessage(group.chat_id, text[7:])
-		except:
-			pass
+def send_notice():
+    message = """
+*当前时时汇率如下，数据来自欧洲中央银行：*
+"""
+    for r in Rate.objects.all().order_by('sell_currency'):
+        message += """
+```
+%(sell)s -> %(buy)s   %(price)s
+```
+        """ % {
+            "sell": _(r.sell_currency),
+            "buy": _(r.buy_currency),
+            "price": r.price,
+        }
+        
+    for u in TeleUser.objects.filter(subscribed=True):
+        try:
+            bot1.sendMessage(chat_id=u.chat_id, text=message, parse_mode="Markdown")
+        except:
+            print(u.chat_id)
 
-
-@shared_task
-def send_error_info(err):
-	admin = TeleUser.objects.filter(role='Admin').get()
-	bot1.sendMessage(admin.chat_id, err)
 
 
 bot2 = telepot.aio.DelegatorBot(TOKEN, [
@@ -54,23 +64,24 @@ def start_message_loop(**kwargs):
     loop.run_forever()
 
 
-@celeryd_init.connect
-@register_as_period_task(interval=3600)
+# @celeryd_init.connect
+# @register_as_period_task(interval=3600)
 def update_rate():
-	c = CurrencyRates()
-	arr = settings.SUPPORT_CURRENCIES
+    c = CurrencyRates()
+    arr = settings.SUPPORT_CURRENCIES
 
-	h = {
-	    "USD": c.get_rates('USD'),
-	    "CNY": c.get_rates('CNY'),
-	    "PHP": c.get_rates('PHP'),
-	}
+    h = {
+        "USD": c.get_rates('USD'),
+        "CNY": c.get_rates('CNY'),
+        "PHP": c.get_rates('PHP'),
+    }
 
-	for i in arr:
-		for j in arr:
-			if i != j:
-				Rate.objects.update_or_create(
-					sell_currency=i,
-					buy_currency=j,
-					price=h[i][j]
-				)
+    for i in arr:
+        for j in arr:
+            if i != j:
+                r, ok = Rate.objects.update_or_create(
+                    sell_currency=i,
+                    buy_currency=j,
+                )
+                r.price = h[i][j]
+                r.save()

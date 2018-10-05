@@ -30,9 +30,9 @@ class TeleUser(models.Model):
     chat_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     name = models.CharField(max_length=20, blank=True, null=True)
     username = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    short_name = models.CharField(max_length=10, unique=True, blank=True, null=True)
     role = models.CharField(choices=ROLE_CHOICES, default='User', max_length=20, blank=True)
     credit_level = models.CharField(choices=CREDIT_LEVEL_CHOICES, default='A', max_length=20, blank=True)
+    subscribed = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -132,6 +132,7 @@ class Rate(models.Model):
         ('CNY', _("CNY")),
         ('PHP', _("PHP")),
         ('USD', _("USD")),
+        ('TWD', _("TWD")),
     )
     sell_currency = models.CharField(choices=CURRENCY_CHOICES, max_length=30)
     buy_currency = models.CharField(choices=CURRENCY_CHOICES, max_length=30)

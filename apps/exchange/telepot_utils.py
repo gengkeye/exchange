@@ -37,6 +37,8 @@ class MessageHandler(UserHandler, AnswererMixin):
             TeleMembership.objects.get_or_create(group=group, user=user)
         else:
             msg_id = None
+            user.subscribed = True
+            user.save()
 
         if content_type == 'text':
             text = msg['text']
@@ -71,6 +73,7 @@ class MessageHandler(UserHandler, AnswererMixin):
 
 
     def query_price(self, text, user):
+        print(trans(text))
         queryset =  Bid.objects.filter(sell_currency=trans(text)) \
             .order_by("-date_created", "buy_currency")[:50]
         message = """
@@ -91,6 +94,7 @@ class MessageHandler(UserHandler, AnswererMixin):
 
     def plain_text(self, text, user):
         text_arr = convert_str_to_list(text)
+        message = None
         if len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
@@ -98,7 +102,7 @@ class MessageHandler(UserHandler, AnswererMixin):
                 message = """
 *当前时时汇率如下，数据来自欧洲中央银行：*
 """
-                for r in Rate.objects.all():
+                for r in Rate.objects.all().order_by('sell_currency'):
                     message += """
 ```
 %(sell)s -> %(buy)s   %(price)s
@@ -114,7 +118,7 @@ class MessageHandler(UserHandler, AnswererMixin):
             buy = trans(text_arr[1])
             price = text_arr[2]
             if sell and buy and re.search('^[-+]?[0-9]*\.?[0-9]{1,2}$', price):
-                Bid.objects.filter(sell_currency=sell, buy_currency=buy).delete()
+                Bid.objects.filter(sell_currency=sell, buy_currency=buy, user=user).delete()
                 Bid.objects.create(sell_currency=sell, buy_currency=buy, price=price, user=user)
                 message = apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
         return message
@@ -176,9 +180,6 @@ class MessageHandler(UserHandler, AnswererMixin):
                         chat_id=chat_id,
                     )
                 except:
-                    from .tasks import send_error_info
-
-                    send_error_info("ERROR: Create a group object failed.")
                     return None
         return group
 
