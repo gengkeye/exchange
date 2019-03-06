@@ -45,6 +45,9 @@ def trans(text):
         "台币": "TWD",
         "新台币": "TWD",
         "TWD": "TWD",
+        "HKD": "HKD",
+        "港币": "HKD",
+        "香港币": "HKD",
     }
     try:
         return h[text.strip().upper()]

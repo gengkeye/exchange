@@ -3,7 +3,9 @@
 from __future__ import unicode_literals
 
 import telepot
+import requests
 import re
+import time
 
 from django.utils.translation import ugettext as _
 
@@ -48,6 +50,13 @@ class MessageHandler(UserHandler, AnswererMixin):
                 message = self.plain_text(text, user)
                 parse_mode = "Markdown"
 
+        elif content_type == 'new_chat_member':
+            print(msg)
+            name = ''
+            for m in msg['new_chat_members']:
+                name += m['first_name'] + ','
+            message = "%s 欢迎加入本群！" % name
+
         if message:
             await self.bot.sendMessage(
                 chat_id=rtn_id,
@@ -73,11 +82,10 @@ class MessageHandler(UserHandler, AnswererMixin):
 
 
     def query_price(self, text, user):
-        print(trans(text))
         queryset =  Bid.objects.filter(sell_currency=trans(text)) \
             .order_by("-date_created", "buy_currency")[:50]
         message = """
-*当前已有%s位商家报价：*
+*今天已有%s位商家报价：*
         """ % queryset.count()
         for bid in queryset:
             message += """
@@ -89,6 +97,11 @@ class MessageHandler(UserHandler, AnswererMixin):
                 "short_name": bid.user.name,
                 "chat_id": bid.user.chat_id,
             }
+
+        message += """
+_北京时间24时自动清空数据，请各位商家每天发布一次最新报价。_
+_换汇请注意安全，谨防诈骗。_
+"""
         return message
 
 
@@ -98,11 +111,14 @@ class MessageHandler(UserHandler, AnswererMixin):
         if len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
-            elif text_arr[0]=='即时汇率':
+
+            elif text_arr[0] in ['即时汇率', '汇率']:
+                rates = Rate.objects.all().order_by('sell_currency')
                 message = """
-*当前时时汇率如下，数据来自欧洲中央银行：*
-"""
-                for r in Rate.objects.all().order_by('sell_currency'):
+*当前时时汇率如下，数据来自欧洲中央银行*
+_更新时间：%s_
+                """ % rates.first().date_created
+                for r in rates:
                     message += """
 ```
 %(sell)s -> %(buy)s   %(price)s
@@ -112,6 +128,71 @@ class MessageHandler(UserHandler, AnswererMixin):
                     "buy": _(r.buy_currency),
                     "price": r.price,
                 }
+
+            elif text_arr[0] == '报价':
+                queryset =  Bid.objects.all().order_by("sell_currency", "-date_created")[:50]
+                message = """
+*今天已有%s位商家报价：*
+                """ % queryset.count()
+                for bid in queryset:
+                    message += """
+`%(sell)s ``换 ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
+                    """  % {
+                        "sell": _(bid.sell_currency),
+                        "buy": _(bid.buy_currency),
+                        "price": bid.price,
+                        "short_name": bid.user.name,
+                        "chat_id": bid.user.chat_id,
+                    }
+                message += """
+_北京时间24时自动清空数据，请各位商家每天发布一次最新报价。_
+_换汇请注意安全，谨防诈骗。_
+"""
+                
+            elif text_arr[0] == '我的报价':
+                queryset =  Bid.objects.filter(user=user).order_by("sell_currency", "-date_created")[:50]
+                if queryset:
+                    message = """
+*%s，您所有的报价如下：*
+                    """ % user.name
+                    for bid in queryset:
+                        message += """
+`%(sell)s ``换 ``%(buy)s ``%(price)s ``%(date)s`
+                        """  % {
+                            "sell": _(bid.sell_currency),
+                            "buy": _(bid.buy_currency),
+                            "price": bid.price,
+                            "date": bid.date_created.date()
+                        }
+                else:
+                    message = "_%s，您没有报价记录！_" % user.name
+            elif text_arr[0] == '币价':
+                message = """
+```
+当前排行前30的虚拟货币价格如下，数据来自coinmarketcap.com
+```
+                """
+                response = requests.get('https://api.coinmarketcap.com/v2/ticker/?limit=30')
+                if response:
+                    data = response.json()['data']
+                    for key in data.keys():
+                        message += """
+`%(symbol)s`    `$%(price)s` 
+                        """ % {
+                            "symbol": data[key]['symbol'],
+                            "price": data[key]['quotes']['USD']['price'],
+                        }
+
+
+
+            elif text_arr[0] == '清空报价':
+                Bid.objects.filter(user=user).delete()
+                message = "_%s，已清空您的所有报价！_" % user.name
+
+        if len(text_arr) == 2:
+            if text_arr[0] == '删除报价' and trans(text_arr[1]):
+                Bid.objects.filter(user=user, sell_currency=trans(text_arr[1])).delete()
+                message = "_%s，已删除您所有%s的报价！_" % (user.name, text_arr[1])
 
         if len(text_arr) == 3:
             sell = trans(text_arr[0])

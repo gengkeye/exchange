@@ -3,12 +3,6 @@
 from __future__ import unicode_literals
 
 from django.db  import models
-from django.db.models import Avg, Sum, Count, Value, Q
-from django.db.models.functions import Concat
-
-import datetime
-from decimal import Decimal
-from django.conf import settings
 
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -133,6 +127,7 @@ class Rate(models.Model):
         ('PHP', _("PHP")),
         ('USD', _("USD")),
         ('TWD', _("TWD")),
+        ('HKD', _("HKD")),
     )
     sell_currency = models.CharField(choices=CURRENCY_CHOICES, max_length=30)
     buy_currency = models.CharField(choices=CURRENCY_CHOICES, max_length=30)

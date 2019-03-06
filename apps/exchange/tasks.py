@@ -14,8 +14,7 @@ from telepot.aio.delegate import pave_event_space, create_open, per_from_id
 from .telepot_utils import MessageHandler
 from forex_python.converter import CurrencyRates
 
-from exchange.models import TeleGroup, Rate, TeleUser
-from .utils import register_as_period_task
+from exchange.models import Rate, TeleUser, Bid
 
 TOKEN = settings.TELEGRAM_BOT['token']
 
@@ -64,8 +63,6 @@ def start_message_loop(**kwargs):
     loop.run_forever()
 
 
-# @celeryd_init.connect
-# @register_as_period_task(interval=3600)
 def update_rate():
     c = CurrencyRates()
     arr = settings.SUPPORT_CURRENCIES
@@ -74,6 +71,7 @@ def update_rate():
         "USD": c.get_rates('USD'),
         "CNY": c.get_rates('CNY'),
         "PHP": c.get_rates('PHP'),
+        "HKD": c.get_rates('HKD'),
     }
 
     for i in arr:

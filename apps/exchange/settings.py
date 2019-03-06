@@ -22,7 +22,7 @@ sys.path.append(PROJECT_DIR)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '3exeh-g!617v%!#x*+6hnyg&xygv$oy6l&9)(1@ndej*t##w^+'
-SUPPORT_CURRENCIES = ('CNY', 'PHP', 'USD')
+SUPPORT_CURRENCIES = ('CNY', 'PHP', 'USD', 'HKD')
 
 # order fee in pesos transfered to driver
 FEE = 2

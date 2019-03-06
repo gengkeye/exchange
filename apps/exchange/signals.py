@@ -3,14 +3,13 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext as _
 
 from django.conf import settings
-from .models import TeleUser
+from .models import Bid
 from .utils import chr_width, get_object_or_none
 
-# @receiver(post_save, sender = TeleUser)
+# @receiver(post_save, sender = Bid)
 # def create_short_name(sender, instance, created, **kwargs):
 #     if created:
-#         set_short_name(instance, instance.name)
-#         instance.save()
+#     	delete_expired_bids()
 
 # @receiver(pre_save, sender = TeleUser)
 # def update_short_name(sender, instance, **kwargs):
