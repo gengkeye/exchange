@@ -21,8 +21,8 @@ class TeleUser(models.Model):
         ('AA', 'AA'),
         ('AAA', 'AAA'),
     )
-    chat_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    name = models.CharField(max_length=20, blank=True, null=True)
+    chat_id = models.CharField(max_length=200, unique=True, blank=True, null=True)
+    name = models.CharField(max_length=1000, blank=True, null=True)
     username = models.CharField(max_length=20, unique=True, blank=True, null=True)
     role = models.CharField(choices=ROLE_CHOICES, default='User', max_length=20, blank=True)
     credit_level = models.CharField(choices=CREDIT_LEVEL_CHOICES, default='A', max_length=20, blank=True)

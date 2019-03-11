@@ -233,11 +233,11 @@ _换汇请注意安全，谨防诈骗。_
             user = TeleUser.objects.create(chat_id=chat_id, name=name, username=username)
         
         if user.username != username:
-            user.username = username
+            user.username = str(username)
             user.save()
 
-        if user.name != name:
-            user.name = name
+        if user.name != str(name):
+            user.name = str(name)
             user.save()
 
         return user  
@@ -246,8 +246,8 @@ _换汇请注意安全，谨防诈骗。_
     def get_and_update_or_create_group(self, title, chat_id):
         try:
             group = TeleGroup.objects.get(chat_id=chat_id)
-            if group.title != title:
-                group.title = title
+            if group.title != str(title):
+                group.title = str(title)
                 group.save()
         except:
             try:

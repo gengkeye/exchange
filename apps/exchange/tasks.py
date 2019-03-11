@@ -51,7 +51,7 @@ def send_notice():
 
 bot2 = telepot.aio.DelegatorBot(TOKEN, [
    pave_event_space()(
-       per_from_id(), create_open, MessageHandler, timeout=10),
+       per_from_id(), create_open, MessageHandler, timeout=3),
 ])
 
 @celeryd_init.connect
