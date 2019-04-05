@@ -160,7 +160,6 @@ simplejson==3.13.2
 six==1.11.0
 sqlparse==0.2.4
 sshpubkeys==2.2.0
-telepot==12.3
 Telethon==0.15.2.1
 terminado==0.6
 testpath==0.3.1
@@ -182,4 +181,5 @@ winiobinary==0.0.4
 wmctrl==0.3
 yarl==0.13.0
 YubiOTP==0.2.1
-zipstream==1.1.4
+telepot
+asyncio

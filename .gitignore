@@ -37,3 +37,5 @@ xpack
 logs/*
 migrations/
 migrations/*
+*/__pycache__/*
+*.pyc
