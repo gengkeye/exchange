@@ -83,7 +83,7 @@ class MessageHandler(UserHandler, AnswererMixin):
 
     def query_price(self, text, user):
         queryset =  Bid.objects.filter(sell_currency=trans(text)) \
-            .order_by("-date_created", "buy_currency")[:50]
+            .order_by("-date_created", "buy_currency")
         message = """
 *今天已有%s位商家报价：*
         """ % queryset.count()
@@ -130,7 +130,7 @@ _更新时间：%s_
                 }
 
             elif text_arr[0] == '报价':
-                queryset =  Bid.objects.all().order_by("sell_currency", "-date_created")[:50]
+                queryset =  Bid.objects.all().order_by("sell_currency", "-date_created")
                 message = """
 *今天已有%s位商家报价：*
                 """ % queryset.count()
@@ -150,7 +150,7 @@ _换汇请注意安全，谨防诈骗。_
 """
                 
             elif text_arr[0] == '我的报价':
-                queryset =  Bid.objects.filter(user=user).order_by("sell_currency", "-date_created")[:50]
+                queryset =  Bid.objects.filter(user=user).order_by("sell_currency", "-date_created")
                 if queryset:
                     message = """
 *%s，您所有的报价如下：*
