@@ -130,7 +130,11 @@ _更新时间：%s_
                 }
 
             elif text_arr[0] == '报价':
+<<<<<<< HEAD
                 queryset =  Bid.objects.all().order_by("sell_currency", "-date_created")
+=======
+                queryset =  Bid.objects.filter(user__is_blocked=False).order_by("sell_currency", "-date_created")
+>>>>>>> d8c4df980caccfa6e7e56becd5787b1860b6f0d7
                 message = """
 *今天已有%s位商家报价：*
                 """ % queryset.count()

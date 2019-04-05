@@ -11,7 +11,7 @@ import telepot
 import asyncio
 from telepot.aio.loop import MessageLoop
 from telepot.aio.delegate import pave_event_space, create_open, per_from_id
-from .telepot_utils import MessageHandler
+from exchange.telepot_utils import MessageHandler
 from forex_python.converter import CurrencyRates
 
 from exchange.models import Rate, TeleUser, Bid
@@ -51,7 +51,7 @@ def send_notice():
 
 bot2 = telepot.aio.DelegatorBot(TOKEN, [
    pave_event_space()(
-       per_from_id(), create_open, MessageHandler, timeout=3),
+       per_from_id(), create_open, MessageHandler, timeout=10),
 ])
 
 @celeryd_init.connect
