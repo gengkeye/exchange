@@ -17,7 +17,7 @@ class Config:
     # telegram bot
     TELE_USERNAME = 'OldsevenBot'
     TELE_TOKEN = '677765866:AAFrFCWkKVa878JIiXEgOv3lsgf4qEtZWu4'
-
+    DISPLAY_PER_PAGE = 100
     # Django security setting, if your disable debug model, you should setting that
     ALLOWED_HOSTS = ['*']
 
