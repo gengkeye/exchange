@@ -1,5 +1,0 @@
-# This is Git's per-user configuration file.
-[user]
-# Please adapt and uncomment the following lines:
-	name = root
-	email = root@ip-172-31-33-203.us-east-2.compute.internal

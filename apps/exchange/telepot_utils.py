@@ -194,6 +194,14 @@ _换汇请注意安全，谨防诈骗。_
                 Bid.objects.filter(user=user, sell_currency=trans(text_arr[1])).delete()
                 message = "_%s，已删除您所有%s的报价！_" % (user.name, text_arr[1])
 
+            if text_arr[0] == 'block' and user.role == 'Admin':
+                TeleUser.objects.filter(name=text_arr[1]).update(is_blocked=True)
+                message = "%s was blocked" % text_arr[1]
+
+            if text_arr[0] == 'unblock' and user.role == 'Admin':
+                TeleUser.objects.filter(name=text_arr[1]).update(is_blocked=False)
+                message = "%s was unblocked" % text_arr[1]
+
         if len(text_arr) == 3:
             sell = trans(text_arr[0])
             buy = trans(text_arr[1])
