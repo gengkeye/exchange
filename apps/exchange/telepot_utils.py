@@ -44,28 +44,30 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         if content_type == 'text':
             text = msg['text']
-            if text.startswith('/help'):
-                message = _("help_message")
+            if group.ban_keywords and re.search(group.ban_keywords, text):
+                message = "delete"
             else:
-                message = self.plain_text(text, user)
+                message = self.plain_text(text, user, group)
                 parse_mode = "Markdown"
 
         elif content_type == 'new_chat_member':
-            print(msg)
             name = ''
             for m in msg['new_chat_members']:
                 name += m['first_name'] + ','
             message = "%s 欢迎加入本群！" % name
 
         if message:
-            await self.bot.sendMessage(
-                chat_id=rtn_id,
-                text=message,
-                reply_to_message_id=msg_id,
-                disable_notification=False,
-                disable_web_page_preview=False,
-                parse_mode=parse_mode
-            )
+            if message == 'delete':
+                await self.bot.deleteMessage(msg_id)
+            else:
+                await self.bot.sendMessage(
+                    chat_id=rtn_id,
+                    text=message,
+                    reply_to_message_id=msg_id,
+                    disable_notification=False,
+                    disable_web_page_preview=False,
+                    parse_mode=parse_mode
+                )
 
     def on_chosen_inline_result(self, msg):
         result_id, from_id, query_string = telepot.glance(msg, flavor='chosen_inline_result')
@@ -105,10 +107,18 @@ _换汇请注意安全，谨防诈骗。_
         return message
 
 
-    def plain_text(self, text, user):
+    def plain_text(self, text, user, group):
         text_arr = convert_str_to_list(text)
         message = None
-        if len(text_arr) == 1:
+        if text_arr[0] == '屏蔽':
+            if user.is_admin:
+                group.ban_keywords = "|".join(a[1:])
+                group.save()
+                message = _("Ban successfully!")
+            else:
+                message = _("Permission Denied")
+
+        elif len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
 
@@ -188,6 +198,9 @@ _换汇请注意安全，谨防诈骗。_
             elif text_arr[0] == '清空报价':
                 Bid.objects.filter(user=user).delete()
                 message = "_%s，已清空您的所有报价！_" % user.name
+
+            elif text_arr[0] == '帮助':
+                message = _("help_message")
 
         if len(text_arr) == 2:
             if text_arr[0] == '删除报价' and trans(text_arr[1]):
