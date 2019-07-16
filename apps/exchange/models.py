@@ -74,6 +74,7 @@ class TeleGroup(models.Model):
     address = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     remarks = models.CharField(max_length=100, blank=True)
+    ban_keywords = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.chat_id
