@@ -12,12 +12,12 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', '2vym+ky!997d5kkcc64mnz06y1mmui3lut#(^wd=%s_qj$1%x')
     # How many line display every page, default 25
 
-    REPO_URL = 'git@210.213.158.59:oldseven/jumpserver.git'
+    # REPO_URL = 'git@210.213.158.59:oldseven/jumpserver.git'
 
     # telegram bot
     TELE_USERNAME = 'OldsevenBot'
     TELE_TOKEN = '677765866:AAFrFCWkKVa878JIiXEgOv3lsgf4qEtZWu4'
-
+    DISPLAY_PER_PAGE = 100
     # Django security setting, if your disable debug model, you should setting that
     ALLOWED_HOSTS = ['*']
 
@@ -25,11 +25,7 @@ class Config:
     DEBUG = False
 
     # DEBUG, INFO, WARNING, ERROR, CRITICAL can set. See https://docs.djangoproject.com/en/1.10/topics/logging/
-    LOG_LEVEL = 'DEBUG'
-
-    HTTP_BIND_HOST = '0.0.0.0'
-
-    HTTP_LISTEN_PORT = 8080
+    LOG_LEVEL = 'INFO'
 
     # mysql database
     DB_ENGINE = 'mysql'
@@ -86,12 +82,7 @@ class ProductionConfig(Config):
     EMAIL_USE_SSL = True  # If port is 465, set True
     EMAIL_USE_TLS = False  # If port is 587, set True
     EMAIL_SUBJECT_PREFIX = '[Jumpserver] '
-    SITE_URL = 'http://172.16.22.223:8080'
+    SITE_URL = 'http://localhost:8080'
 
-# config = {
-#     'production': ProductionConfig,
-# }
-
-# env = 'production'
 
 config = ProductionConfig()

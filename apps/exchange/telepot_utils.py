@@ -140,7 +140,7 @@ _更新时间：%s_
                 }
 
             elif text_arr[0] == '报价':
-                queryset =  Bid.objects.filter(user__is_blocked=False).order_by("sell_currency", "-date_created")
+                queryset =  Bid.objects.filter(user__is_blocked=False).order_by("-sell_currency", "date_created")
                 message = """
 *今天已有%s位商家报价：*
                 """ % queryset.count()
@@ -160,7 +160,7 @@ _换汇请注意安全，谨防诈骗。_
 """
                 
             elif text_arr[0] == '我的报价':
-                queryset =  Bid.objects.filter(user=user).order_by("sell_currency", "-date_created")
+                queryset =  Bid.objects.filter(user=user).order_by("-sell_currency", "date_created")
                 if queryset:
                     message = """
 *%s，您所有的报价如下：*
@@ -210,6 +210,10 @@ _换汇请注意安全，谨防诈骗。_
             if text_arr[0] == 'block' and user.role == 'Admin':
                 TeleUser.objects.filter(name=text_arr[1]).update(is_blocked=True)
                 message = "%s was blocked" % text_arr[1]
+
+            if text_arr[0] == 'unblock' and user.role == 'Admin':
+                TeleUser.objects.filter(name=text_arr[1]).update(is_blocked=False)
+                message = "%s was unblocked" % text_arr[1]
 
         if len(text_arr) == 3:
             sell = trans(text_arr[0])
