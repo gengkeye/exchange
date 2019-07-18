@@ -30,11 +30,9 @@ media
 celerybeat.pid
 django.db
 celerybeat-schedule.db
-data/*
+data
 logs/*
 docs/_build/
 xpack
-logs/*
-migrations/
-migrations/*
-apps/exchange/__pycache__
+migrations
+__pycache__
