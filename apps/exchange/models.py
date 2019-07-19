@@ -47,6 +47,52 @@ class TeleUser(models.Model):
         else:
             return False
 
+
+@python_2_unicode_compatible
+class Restaurant(models.Model):
+    CATEGORY_CHOICE = (
+        ('lunch', _('Lunch')),
+        ('breakfast', _('Breakfast')),
+        ('supper', _('Supper')),
+        ('fruit', _('Fruit')),
+        ('milk tea', _('Milk Tea')),
+    )
+    CITY_CHOICES = (
+        ('makati', _('Makati')),
+        ('manila',_('Manila')),
+        ('pasay',_('Pasay')),
+        ('bgc',_('BGC')),
+        ('quezon',_('Quezon')),
+        ('mandaluyong',_('Mandaluyong')),
+        ('alabang',_('Alabang')),
+    )
+    wechat_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    creator = models.ForeignKey(TeleUser, on_delete=models.CASCADE, related_name='restaurants')
+    name = models.CharField(max_length=20, unique=True)
+    phone = models.CharField(max_length=20)
+    city = models.CharField(choices=CITY_CHOICES, max_length=20)
+    address = models.CharField(max_length=100)
+    active = models.BooleanField(default= False)
+    meal = models.CharField(choices=CATEGORY_CHOICE, max_length=20)
+    likes = models.PositiveIntegerField(default=0)
+    dislikes = models.PositiveIntegerField(default=0)
+    remarks = models.CharField(max_length=100, blank=True)
+
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def available(cls):
+        return cls.objects.filter(active=True)
+
+
+class ThumbsUp(models.Model):
+    user = models.ForeignKey(TeleUser, on_delete=models.CASCADE, related_name='thumps_up')
+    store = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='thumps_up')
+    like =  models.BooleanField()
+
+
 @python_2_unicode_compatible
 class TeleImage(models.Model):
     PURPOSE_CHOICES = (

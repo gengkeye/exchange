@@ -35,4 +35,3 @@ logs/*
 docs/_build/
 xpack
 migrations
-__pycache__

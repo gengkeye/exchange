@@ -165,3 +165,60 @@ msgstr "%(name)s, 您已订阅成功！"
 
 msgid "Permission Denied"
 msgstr "没有权限执行此操作，请联系管理员"
+
+msgid "Lunch"
+msgstr "午餐"
+
+msgid "Breakfast"
+msgstr "早餐"
+
+msgid "Supper"
+msgstr "晚餐"
+
+msgid "Makati"
+msgstr "玛卡提"
+
+msgid "Manila"
+msgstr "马尼拉"
+
+msgid "BGC"
+msgstr "BGC"
+
+msgid "Madanluyong"
+msgstr "曼达卢永"
+
+msgid "Pasay"
+msgstr "帕赛"
+
+msgid "Alabang"
+msgstr "阿拉邦"
+
+msgid "Quezon"
+msgstr "奎松"
+
+msgid "Restaurant"
+msgstr "外卖"
+
+msgid "Milk Tea"
+msgstr "奶茶"
+
+msgid "Fruit"
+msgstr "水果"
+
+msgid "City"
+msgstr "城市"
+
+msgid "Store Name"
+msgstr "店名"
+
+msgid "Category"
+msgstr "分类"
+
+msgid "Phone"
+msgstr "电话"
+
+msgid "Likes Count"
+msgstr "点赞数"
+
+msgid "Dislikes Count"
+msgstr "差评数"
