@@ -9,6 +9,8 @@ config.yml
 tmp/*
 sessions/*
 media
-data/*
-logs/*
-migrations/*
+data
+logs
+migrations
+__pycache__
+apps/exchange/__pycache__

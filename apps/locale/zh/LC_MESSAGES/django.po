@@ -165,3 +165,6 @@ msgstr "%(name)s, 您已订阅成功！"
 
 msgid "Permission Denied"
 msgstr "没有权限执行此操作，请联系管理员"
+
+msgid "Ban successfully!"
+msgstr "屏蔽成功！"

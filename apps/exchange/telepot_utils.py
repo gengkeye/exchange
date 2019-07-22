@@ -44,7 +44,7 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         if content_type == 'text':
             text = msg['text']
-            if group.ban_keywords and re.search(group.ban_keywords, text):
+            if (group and group.ban_keywords and re.search(group.ban_keywords, text)) or len(text)>30:
                 message = "delete"
             else:
                 message = self.plain_text(text, user, group)
@@ -58,7 +58,7 @@ class MessageHandler(UserHandler, AnswererMixin):
 
         if message:
             if message == 'delete':
-                await self.bot.deleteMessage(msg_id)
+                await self.bot.deleteMessage((chat_id, msg_id))
             else:
                 await self.bot.sendMessage(
                     chat_id=rtn_id,
@@ -111,8 +111,8 @@ _换汇请注意安全，谨防诈骗。_
         text_arr = convert_str_to_list(text)
         message = None
         if text_arr[0] == '屏蔽':
-            if user.is_admin:
-                group.ban_keywords = "|".join(a[1:])
+            if user.is_admin and group:
+                group.ban_keywords = "|".join(text_arr[1:])
                 group.save()
                 message = _("Ban successfully!")
             else:

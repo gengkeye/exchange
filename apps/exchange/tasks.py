@@ -83,3 +83,26 @@ def update_rate():
                 )
                 r.price = h[i][j]
                 r.save()
+
+
+@shared_task
+def send_bids_period():
+    queryset =  Bid.objects.filter(user__is_blocked=False).order_by("sell_currency", "-date_created")
+    message = """
+*今天已有%s位商家报价：* 
+    """ % queryset.count()
+    for bid in queryset:
+        message += """
+`%(sell)s ``换 ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
+        """  % {
+            "sell": _(bid.sell_currency),
+            "buy": _(bid.buy_currency),
+            "price": bid.price,
+            "short_name": bid.user.name,
+            "chat_id": bid.user.chat_id,
+        }
+    message += """
+_北京时间24时自动清空数据，请各位商家每天发布一次最新报价。_
+_换汇请注意安全，谨防诈骗。_
+    """
+    bot1.sendMessage(chat_id='-1001112269761', text=message, parse_mode="Markdown")
