@@ -13,7 +13,9 @@ from telepot.aio.helper import chat_flavors, inline_flavors
 from telepot.aio.helper import UserHandler, AnswererMixin
 from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list
-from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate
+from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant
+from django.db.models import Avg, Sum, Count, Value, Q
+
 
 class MessageHandler(UserHandler, AnswererMixin):
     def __init__(self, seed_tuple,
@@ -89,6 +91,7 @@ class MessageHandler(UserHandler, AnswererMixin):
         message = """
 *今天已有%s位商家报价：*
         """ % queryset.count()
+
         for bid in queryset:
             message += """
 `%(sell)s ``换 ``%(buy)s ``%(price)s `[%(short_name)s](tg://user?id=%(chat_id)s)
@@ -107,6 +110,36 @@ _换汇请注意安全，谨防诈骗。_
         return message
 
 
+    def query_restaurant(self, text):
+        restaurants = Restaurant.objects.filter(Q(meal=text)|Q(city=text)).order_by('city', 'likes')
+        # if text in ['breakfast', 'lunch', 'supper', 'fruit', 'milk tea']:
+        #     restaurants = restaurants.filter(Q(meal=text)|Q(city=text))
+        # elif text in ['makati', 'manila', 'quezon', 'bgc', 'pasay', 'alabang']:
+        #     restaurants = restaurants.filter(city=text)\
+        message = """
+%(city)s | %(name)s  | %(category)s | %(phone)s | %(like)s | %(dislike)s
+------------- | ------------- | ------------- | ------------- | ------------- | -------------
+        """ % {
+                "city": _('City'),
+                "name": _('Store Name'),
+                "category": _('Category'),
+                "phone": _('Phone'),
+                "like": _('Likes Count'),
+                "dislike": _('Dislikes Count'),
+            }
+        for r in restaurants:
+            message += """
+%(city)s | %(name)s | %(category)s | %(phone)s | %(like)s | %(dislike)s
+            """ % {
+                "city": r.city,
+                "name": r.name,
+                "category": r.category,
+                "phone": r.phone,
+                "like": r.likes,
+                "dislike": r.dislikes,
+            }
+        return message
+
     def plain_text(self, text, user, group):
         text_arr = convert_str_to_list(text)
         message = None
@@ -118,9 +151,19 @@ _换汇请注意安全，谨防诈骗。_
             else:
                 message = _("Permission Denied")
 
+        elif text_arr[0] == '录入':
+            r = Restaurant.objects.new(creator=user, name=text_arr[1], city=text_arr[2], meal=text_arr[3], phone=text_arr[4])
+            if r.save():
+                message = _("%(name)s Create successfully!")%{"name":r.name}
+            else:
+                message = _("Invalid syntax")
+
         elif len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
+
+            elif mapping_restaurant(text_arr[0]):
+                message = self.query_restaurant(mapping_restaurant(text_arr[0]))
 
             elif text_arr[0] in ['即时汇率', '汇率']:
                 rates = Rate.objects.all().order_by('sell_currency')

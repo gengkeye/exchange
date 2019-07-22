@@ -84,9 +84,6 @@ def update_rate():
                 r.price = h[i][j]
                 r.save()
 
-
-@shared_task
-def send_bids_period():
     queryset =  Bid.objects.filter(user__is_blocked=False).order_by("sell_currency", "-date_created")
     message = """
 *今天已有%s位商家报价：* 

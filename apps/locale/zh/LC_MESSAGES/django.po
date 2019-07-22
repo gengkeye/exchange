@@ -167,4 +167,72 @@ msgid "Permission Denied"
 msgstr "没有权限执行此操作，请联系管理员"
 
 msgid "Ban successfully!"
-msgstr "屏蔽成功！"
+msgstr "屏蔽成功"
+
+msgid "Lunch"
+msgstr "午餐"
+
+msgid "Breakfast"
+msgstr "早餐"
+
+msgid "Supper"
+msgstr "晚餐"
+
+msgid "Makati"
+msgstr "玛卡提"
+
+msgid "Manila"
+msgstr "马尼拉"
+
+msgid "BGC"
+msgstr "BGC"
+
+msgid "Madanluyong"
+msgstr "曼达卢永"
+
+msgid "Pasay"
+msgstr "帕赛"
+
+msgid "Alabang"
+msgstr "阿拉邦"
+
+msgid "Quezon"
+msgstr "奎松"
+
+msgid "Restaurant"
+msgstr "外卖"
+
+msgid "Milk Tea"
+msgstr "奶茶"
+
+msgid "Fruit"
+msgstr "水果"
+
+msgid "City"
+msgstr "城市"
+
+msgid "Store Name"
+msgstr "店名"
+
+msgid "Category"
+msgstr "分类"
+
+msgid "Phone"
+msgstr "电话"
+
+msgid "Likes Count"
+msgstr "点赞数"
+
+msgid "Dislikes Count"
+msgstr "差评数"
+
+msgid "Create successfully!"
+msgstr "收录成功"
+
+msgid "Invalid syntax"
+msgstr ""
+"请使用如下格式录入店铺信息：录入 店名 所属城市 经营类型 电话\n"
+"例如：录入 阿里山 玛卡提 奶茶 0943234567\n"
+"经营类型可填写：早餐、午餐、晚餐、奶茶、水果\n"
+"所属城市可填写：玛卡提、马尼拉、帕賽、BGC、阿拉邦,\n"
+"或城市英文名makati, pasay, bgc, alabang, manila, 不区分大小写"

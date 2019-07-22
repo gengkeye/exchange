@@ -54,6 +54,46 @@ def trans(text):
     except:
         return None
 
+def mapping_restaurant(text):
+    h = {
+        "点餐": "restaurant",
+        "菜单": "restaurant",
+        "早餐": "breakfast",
+        "午餐": "lunch",
+        "晚餐": "lunch",
+        "奶茶": "milk tea",
+        "水果": "fruit",
+
+        "MAKATI": "makati",
+        "玛卡提": "makati",
+        "玛卡蹄": "makati",
+        "玛卡题": "makati",
+        "玛卡踢": "makati",
+        "马尼拉": "manila",
+
+        "码卡提": "makati",
+        "码卡提": "makati",
+        "玛卡提": "makati",
+
+        "PASAY": "pasay",
+        "PASSAY": "pasay",
+        "怕赛": "pasay",
+        "爬赛": "pasay",
+        "帕赛": "pasay",
+        "趴赛": "pasay",
+
+        "曼达卢永": "mandaluyong",
+        "曼达卢勇": "mandaluyong",
+        "MANDALUYONG": "mandaluyong",
+
+        "BGC": "bgc",
+        "阿拉邦": "alabang",
+        "ALABANG": "alabang",
+    }
+    try:
+        return h[text.strip().upper()]
+    except:
+        return None
 
 def add_register_period_task(name):
     key = "__REGISTER_PERIODIC_TASKS"

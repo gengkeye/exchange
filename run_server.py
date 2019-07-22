@@ -4,16 +4,6 @@
 from threading import Thread
 import os
 import subprocess
-try:
-    from config import config as CONFIG
-except ImportError:
-    msg = """
-
-    Error: No config file found.
-
-    You can run `cp config_example.py config.py`, and edit it.
-    """
-    raise ImportError(msg)
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

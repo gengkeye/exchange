@@ -13,4 +13,8 @@ data
 logs
 migrations
 __pycache__
-apps/exchange/__pycache__
+celerybeat.pid
+django.db
+celerybeat-schedule.db
+docs
+xpack
