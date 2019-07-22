@@ -151,6 +151,13 @@ _换汇请注意安全，谨防诈骗。_
             else:
                 message = _("Permission Denied")
 
+        elif text_arr[0] == '录入':
+            r = Restaurant.objects.new(creator=user, name=text_arr[1], city=text_arr[2], meal=text_arr[3], phone=text_arr[4])
+            if r.save():
+                message = _("%(name)s Create successfully!")%{"name":r.name}
+            else:
+                message = _("Invalid syntax")
+
         elif len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
