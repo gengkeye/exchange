@@ -119,7 +119,7 @@ _换汇请注意安全，谨防诈骗。_
             ).order_by('city', 'likes')
         message = """
 ```
-%(city)s %(name)s %(category)s %(phone)s %(like)s %(dislike)s
+%(city)s   %(name)s   %(category)s   %(phone)s
 ```
         """ % {
                 "city": _('City'),
@@ -129,9 +129,9 @@ _换汇请注意安全，谨防诈骗。_
                 "like": _('Likes Count'),
                 "dislike": _('Dislikes Count'),
             }
-        for r in restaurants:
+        for r in restaurants.order_by('likes'):
             message += """
-%(city)s %(name)s %(category)s %(phone)s %(like)s %(dislike)s 
+%(city)s   %(name)s   %(category)s   %(phone)s 
             """ % {
                 "city": r.city,
                 "name": r.name,
