@@ -9,6 +9,7 @@ from functools import wraps
 from django.db.utils import ProgrammingError, OperationalError
 from django.core.cache import cache
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
+from exchange.models import Restaurant
 
 
 def convert_str_to_list(text, seperator=' '):
@@ -55,13 +56,21 @@ def trans(text):
         return None
 
 def mapping_restaurant(text):
+    text = text.strip().upper()
     arr = ["外卖","早餐","午餐","晚餐","奶茶","水果",
         "RESTAURANT","BREAKFAST","LUNCH",
         "MILK TEA","FRUIT","MAKATI","玛卡提","玛卡蹄","玛卡题",
         "玛卡踢","马尼拉","码卡提","码卡提","玛卡提","PASAY","PASSAY",
         "怕赛","爬赛","帕赛","趴赛","曼达卢永","曼达卢勇",
         "MANDALUYONG","BGC","阿拉邦","ALABANG"]
-    return text.strip().upper() in arr
+
+    if text in arr:
+        return True
+
+    if Restaurant.objects.filter(name__contains=text):
+        return True
+
+    return False
 
 
 def add_register_period_task(name):

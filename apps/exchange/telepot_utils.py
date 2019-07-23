@@ -115,7 +115,7 @@ _换汇请注意安全，谨防诈骗。_
             restaurants = Restaurant.objects.all()
         else:
             restaurants = Restaurant.objects.filter(
-                Q(meal=text) | Q(city=text) | Q(name=text)
+                Q(meal=text) | Q(city=text) | Q(name__contains=text)
             ).order_by('city', 'likes')
         message = """
 ```
