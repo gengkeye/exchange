@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import telepot
 import requests
 import re
-import time
 
 from django.utils.translation import ugettext as _
 
@@ -14,7 +13,7 @@ from telepot.aio.helper import UserHandler, AnswererMixin
 from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list, mapping_restaurant
 from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant
-from django.db.models import Avg, Sum, Count, Value, Q
+from django.db.models import Q
 
 
 class MessageHandler(UserHandler, AnswererMixin):
@@ -111,11 +110,13 @@ _换汇请注意安全，谨防诈骗。_
 
 
     def query_restaurant(self, text):
-        restaurants = Restaurant.objects.filter(Q(meal=text)|Q(city=text)).order_by('city', 'likes')
-        # if text in ['breakfast', 'lunch', 'supper', 'fruit', 'milk tea']:
-        #     restaurants = restaurants.filter(Q(meal=text)|Q(city=text))
-        # elif text in ['makati', 'manila', 'quezon', 'bgc', 'pasay', 'alabang']:
-        #     restaurants = restaurants.filter(city=text)\
+        text = text.strip().lower()
+        if text in ['外卖', 'restaurant']:
+            restaurants = Restaurant.objects.all()
+        else:
+            restaurants = Restaurant.objects.filter(
+                Q(meal=text) | Q(city=text) | Q(name=text)
+            ).order_by('city', 'likes')
         message = """
 ```
 %(city)s %(name)s %(category)s %(phone)s %(like)s %(dislike)s
@@ -152,19 +153,12 @@ _换汇请注意安全，谨防诈骗。_
             else:
                 message = _("Permission Denied")
 
-        elif text_arr[0] == '录入':
-            #try:
-            obj = Restaurant.objects.create(creator=user, name=text_arr[1], city=text_arr[2], meal=text_arr[3], phone=text_arr[4])
-            message = _("%(name)s Create successfully!") % { "name": obj.name}
-            #except:
-            #    message = _("Invalid syntax")
-
         elif len(text_arr) == 1:
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
 
             elif mapping_restaurant(text_arr[0]):
-                message = self.query_restaurant(mapping_restaurant(text_arr[0]))
+                message = self.query_restaurant(text_arr[0])
 
             elif text_arr[0] in ['即时汇率', '汇率']:
                 rates = Rate.objects.all().order_by('sell_currency')
@@ -246,7 +240,7 @@ _换汇请注意安全，谨防诈骗。_
             elif text_arr[0] == '帮助':
                 message = _("help_message")
 
-        if len(text_arr) == 2:
+        elif len(text_arr) == 2:
             if text_arr[0] == '删除报价' and trans(text_arr[1]):
                 Bid.objects.filter(user=user, sell_currency=trans(text_arr[1])).delete()
                 message = "_%s，已删除您所有%s的报价！_" % (user.name, text_arr[1])
@@ -259,7 +253,7 @@ _换汇请注意安全，谨防诈骗。_
                 TeleUser.objects.filter(name=text_arr[1]).update(is_blocked=False)
                 message = "%s was unblocked" % text_arr[1]
 
-        if len(text_arr) == 3:
+        elif len(text_arr) == 3:
             sell = trans(text_arr[0])
             buy = trans(text_arr[1])
             price = text_arr[2]
@@ -267,6 +261,21 @@ _换汇请注意安全，谨防诈骗。_
                 Bid.objects.filter(sell_currency=sell, buy_currency=buy, user=user).delete()
                 Bid.objects.create(sell_currency=sell, buy_currency=buy, price=price, user=user)
                 message = apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
+
+        elif len(text_arr) == 4:
+            old_stores = user.restaurants.all()
+            obj = Restaurant(creator=user, 
+                name=text_arr[1].strip().lower(), 
+                city=text_arr[2].strip().lower(), 
+                meal=text_arr[3].strip().lower(), 
+                phone=text_arr[4].strip().lower())
+
+            if obj.save():
+                old_stores.delete()
+                message = _("%(name)s Create successfully!") % { "name": obj.name}
+            else:
+               message = _("Invalid syntax")
+
         return message
 
 

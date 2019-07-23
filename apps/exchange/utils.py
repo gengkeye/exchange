@@ -55,52 +55,14 @@ def trans(text):
         return None
 
 def mapping_restaurant(text):
-    h = {
-        "外卖": "restaurant",
-        "点餐": "restaurant",
-        "菜单": "restaurant",
-        "早餐": "breakfast",
-        "午餐": "lunch",
-        "晚餐": "lunch",
-        "奶茶": "milk tea",
-        "水果": "fruit",
-        "restaurant": "restaurant",
-        "breakfast": "breakfast",
-        "lunch": "lunch",
-        "breakfast": "lunch",
-        "milk tea": "milk tea",
-        "fruit": "fruit",
+    arr = ["外卖","早餐","午餐","晚餐","奶茶","水果",
+        "RESTAURANT","BREAKFAST","LUNCH",
+        "MILK TEA","FRUIT","MAKATI","玛卡提","玛卡蹄","玛卡题",
+        "玛卡踢","马尼拉","码卡提","码卡提","玛卡提","PASAY","PASSAY",
+        "怕赛","爬赛","帕赛","趴赛","曼达卢永","曼达卢勇",
+        "MANDALUYONG","BGC","阿拉邦","ALABANG"]
+    return text.strip().upper() in arr
 
-        "MAKATI": "makati",
-        "玛卡提": "makati",
-        "玛卡蹄": "makati",
-        "玛卡题": "makati",
-        "玛卡踢": "makati",
-        "马尼拉": "manila",
-
-        "码卡提": "makati",
-        "码卡提": "makati",
-        "玛卡提": "makati",
-
-        "PASAY": "pasay",
-        "PASSAY": "pasay",
-        "怕赛": "pasay",
-        "爬赛": "pasay",
-        "帕赛": "pasay",
-        "趴赛": "pasay",
-
-        "曼达卢永": "mandaluyong",
-        "曼达卢勇": "mandaluyong",
-        "MANDALUYONG": "mandaluyong",
-
-        "BGC": "bgc",
-        "阿拉邦": "alabang",
-        "ALABANG": "alabang",
-    }
-    try:
-        return h[text.strip().upper()]
-    except:
-        return None
 
 def add_register_period_task(name):
     key = "__REGISTER_PERIODIC_TASKS"
