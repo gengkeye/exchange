@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 from telepot.aio.helper import chat_flavors, inline_flavors
 from telepot.aio.helper import UserHandler, AnswererMixin
 from telepot.text import apply_entities_as_markdown
-from .utils import get_object_or_none, trans, convert_str_to_list
+from .utils import get_object_or_none, trans, convert_str_to_list, mapping_restaurant
 from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant
 from django.db.models import Avg, Sum, Count, Value, Q
 
@@ -117,8 +117,9 @@ _换汇请注意安全，谨防诈骗。_
         # elif text in ['makati', 'manila', 'quezon', 'bgc', 'pasay', 'alabang']:
         #     restaurants = restaurants.filter(city=text)\
         message = """
-%(city)s | %(name)s  | %(category)s | %(phone)s | %(like)s | %(dislike)s
-------------- | ------------- | ------------- | ------------- | ------------- | -------------
+```
+%(city)s %(name)s %(category)s %(phone)s %(like)s %(dislike)s
+```
         """ % {
                 "city": _('City'),
                 "name": _('Store Name'),
@@ -129,11 +130,11 @@ _换汇请注意安全，谨防诈骗。_
             }
         for r in restaurants:
             message += """
-%(city)s | %(name)s | %(category)s | %(phone)s | %(like)s | %(dislike)s
+%(city)s %(name)s %(category)s %(phone)s %(like)s %(dislike)s 
             """ % {
                 "city": r.city,
                 "name": r.name,
-                "category": r.category,
+                "category": _(r.meal),
                 "phone": r.phone,
                 "like": r.likes,
                 "dislike": r.dislikes,
@@ -152,11 +153,11 @@ _换汇请注意安全，谨防诈骗。_
                 message = _("Permission Denied")
 
         elif text_arr[0] == '录入':
-            r = Restaurant.objects.new(creator=user, name=text_arr[1], city=text_arr[2], meal=text_arr[3], phone=text_arr[4])
-            if r.save():
-                message = _("%(name)s Create successfully!")%{"name":r.name}
-            else:
-                message = _("Invalid syntax")
+            #try:
+            obj = Restaurant.objects.create(creator=user, name=text_arr[1], city=text_arr[2], meal=text_arr[3], phone=text_arr[4])
+            message = _("%(name)s Create successfully!") % { "name": obj.name}
+            #except:
+            #    message = _("Invalid syntax")
 
         elif len(text_arr) == 1:
             if trans(text_arr[0]):

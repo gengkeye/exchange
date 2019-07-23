@@ -56,6 +56,7 @@ def trans(text):
 
 def mapping_restaurant(text):
     h = {
+        "外卖": "restaurant",
         "点餐": "restaurant",
         "菜单": "restaurant",
         "早餐": "breakfast",
@@ -63,6 +64,12 @@ def mapping_restaurant(text):
         "晚餐": "lunch",
         "奶茶": "milk tea",
         "水果": "fruit",
+        "restaurant": "restaurant",
+        "breakfast": "breakfast",
+        "lunch": "lunch",
+        "breakfast": "lunch",
+        "milk tea": "milk tea",
+        "fruit": "fruit",
 
         "MAKATI": "makati",
         "玛卡提": "makati",
