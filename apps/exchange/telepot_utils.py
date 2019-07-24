@@ -155,7 +155,9 @@ _换汇请注意安全，谨防诈骗。_
                 arr =  text_arr[1].split('_')
                 store = get_object_or_none(Restaurant, pk=arr[1])
                 if store:
-                    obj = ThumbsUp.objects.update_or_create(user=user, store=store)
+                    obj = ThumbsUp.objects.filter(user=user, store=store).first()
+                    if obj is None:
+                        obj = ThumbsUp(user=user, store=store)
                     obj.like = True if arr[0] == 'like' else False;
                     obj.save()
 
