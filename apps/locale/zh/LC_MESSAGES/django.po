@@ -232,3 +232,6 @@ msgstr ""
 "经营类型可填写：早餐、午餐、晚餐、奶茶、水果等\n"
 "所属城市可填写：玛卡提、马尼拉、帕賽、BGC、阿拉邦等\n"
 "或城市英文名makati, pasay, bgc, alabang, manila, 不区分大小写"
+
+msgid "appraise"
+msgstr "评价"

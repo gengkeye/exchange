@@ -122,26 +122,20 @@ _换汇请注意安全，谨防诈骗。_
 
         message = """
 ```
-%(city)s   %(name)s   %(category)s   %(phone)s
+%(name)s   %(phone)s  %(appraise)s
 ```
         """ % {
-                "city": _('City'),
                 "name": _('Store Name'),
-                "category": _('Category'),
                 "phone": _('Phone'),
-                "like": _('Likes Count'),
-                "dislike": _('Dislikes Count'),
+                "appraise": _("appraise"),
             }
 
         for r in restaurants:
             message += """
-%(city)s %(name)s %(category)s %(phone)s %(action)s
+%(name)s %(phone)s %(action)s
             """ % {
-                "city": r.city,
                 "name": r.name,
-                "category": _(r.category),
                 "phone": r.phone,
-                # "action": "[赞%s](tg://user?id=357468958) [踩%s](tg://user?id=357468958)" % (emoji.emojize(':thumbs_up:'),emoji.emojize(':thumbs_down:')),
                 "action": "[赞%(up)s](t.me/oldsevenbot?start=like_%(store_id)s) [踩%(down)s](t.me/oldsevenbot?start=dislike_%(store_id)s)" %
                     {"up": emoji.emojize(':thumbs_up:'), 
                      "down": emoji.emojize(':thumbs_down:'),
