@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import telepot
 import requests
 import re
+import emoji
 
 from django.utils.translation import ugettext as _
 
@@ -115,7 +116,7 @@ _换汇请注意安全，谨防诈骗。_
             restaurants = Restaurant.objects.all()
         else:
             restaurants = Restaurant.objects.filter(
-                Q(meal=text) | Q(city=text) | Q(name__contains=text)
+                Q(category=text) | Q(city=text) | Q(name__contains=text)
             ).order_by('city', 'likes')
         message = """
 ```
@@ -131,14 +132,15 @@ _换汇请注意安全，谨防诈骗。_
             }
         for r in restaurants.order_by('likes'):
             message += """
-%(city)s   %(name)s   %(category)s   %(phone)s 
+%(city)s   %(name)s   %(category)s   %(phone)s %(action)s
             """ % {
                 "city": r.city,
                 "name": r.name,
-                "category": _(r.meal),
+                "category": _(r.category),
                 "phone": r.phone,
                 "like": r.likes,
                 "dislike": r.dislikes,
+                "action": "[赞%s](tg://user?id=357468958) [踩%s](tg://user?id=357468958)" % (emoji.emojize(':thumbs_up:'),emoji.emojize(':thumbs_down:'))
             }
         return message
 
@@ -265,9 +267,9 @@ _换汇请注意安全，谨防诈骗。_
         elif len(text_arr) == 4:
             old_stores = user.restaurants.all()
             obj = Restaurant(creator=user, 
-                name=text_arr[1].strip().lower(), 
-                city=text_arr[2].strip().lower(), 
-                meal=text_arr[3].strip().lower(), 
+                city=text_arr[1].strip().lower(), 
+                name=text_arr[2].strip().lower(), 
+                category=text_arr[3].strip().lower(), 
                 phone=text_arr[4].strip().lower())
 
             if obj.save():

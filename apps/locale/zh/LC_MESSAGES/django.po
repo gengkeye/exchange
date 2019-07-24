@@ -210,7 +210,7 @@ msgid "Store Name"
 msgstr "店名"
 
 msgid "Category"
-msgstr "分类"
+msgstr "经营类型"
 
 msgid "Phone"
 msgstr "电话"
@@ -226,7 +226,7 @@ msgstr "收录成功"
 
 msgid "Invalid syntax"
 msgstr ""
-"请使用如下格式录入店铺信息：店名 所属城市 经营类型 电话\n"
+"请使用如下格式录入店铺信息：地区 店名 经营类型 电话\n"
 "例如：阿里山 玛卡提 奶茶 0943234567\n"
 "经营类型可填写：早餐、午餐、晚餐、奶茶、水果等\n"
 "所属城市可填写：玛卡提、马尼拉、帕賽、BGC、阿拉邦等\n"

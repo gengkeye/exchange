@@ -73,7 +73,7 @@ class Restaurant(models.Model):
     city = models.CharField(max_length=20)
     address = models.CharField(max_length=100)
     active = models.BooleanField(default= False)
-    meal = models.CharField(max_length=20)
+    category = models.CharField(max_length=20)
     likes = models.PositiveIntegerField(default=0)
     dislikes = models.PositiveIntegerField(default=0)
     remarks = models.CharField(max_length=100, blank=True)
