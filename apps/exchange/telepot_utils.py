@@ -133,9 +133,7 @@ _换汇请注意安全，谨防诈骗。_
             }
         for r in restaurants.order_by('likes'):
             message += """
-```
 %(city)s %(name)s %(category)s %(phone)s %(action)s
-```
             """ % {
                 "city": r.city,
                 "name": r.name,
@@ -158,9 +156,9 @@ _换汇请注意安全，谨防诈骗。_
                 store = get_object_or_none(Restaurant, pk=arr[1])
                 if store:
                     if arr[0] == 'like':
-                        ThumbsUp.create(user=user, store=store, like=True)
+                        ThumbsUp.objects.update_or_create(user=user, store=store, like=True)
                     else:
-                        ThumbsUp.create(user=user, store=store, like=False)
+                        ThumbsUp.objects.update_or_create(user=user, store=store, like=False)
 
         elif text_arr[0]  == '屏蔽':
             if user.is_admin and group:
