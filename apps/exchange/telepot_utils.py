@@ -13,9 +13,8 @@ from telepot.aio.helper import chat_flavors, inline_flavors
 from telepot.aio.helper import UserHandler, AnswererMixin
 from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list, mapping_restaurant
-from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant
+from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant, ThumbsUp
 from django.db.models import Q
-from .utils import chr_width, get_object_or_none
 
 
 
