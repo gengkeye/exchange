@@ -114,11 +114,12 @@ _换汇请注意安全，谨防诈骗。_
     def query_restaurant(self, text):
         text = text.strip().lower()
         if text in ['外卖', 'restaurant']:
-            restaurants = Restaurant.objects.all()
+            restaurants = Restaurant.objects.order_by('city','-likes')
         else:
             restaurants = Restaurant.objects.filter(
                 Q(category=text) | Q(city=text) | Q(name__contains=text)
-            ).order_by('city', 'likes')
+            ).order_by('city', '-likes')
+
         message = """
 ```
 %(city)s   %(name)s   %(category)s   %(phone)s
@@ -131,7 +132,8 @@ _换汇请注意安全，谨防诈骗。_
                 "like": _('Likes Count'),
                 "dislike": _('Dislikes Count'),
             }
-        for r in restaurants.order_by('likes'):
+
+        for r in restaurants:
             message += """
 %(city)s %(name)s %(category)s %(phone)s %(action)s
             """ % {
@@ -160,6 +162,7 @@ _换汇请注意安全，谨防诈骗。_
                         obj = ThumbsUp(user=user, store=store)
                     obj.like = True if arr[0] == 'like' else False;
                     obj.save()
+                    message = "评价成功，感谢反馈！店铺%s已收获%s个赞，%s个踩" % (obj.store.name, obj.store.likes, obj.store.dislikes)
 
         elif text_arr[0]  == '屏蔽':
             if user.is_admin and group:
