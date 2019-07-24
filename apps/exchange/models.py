@@ -92,6 +92,9 @@ class ThumbsUp(models.Model):
     store = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='thumps_up')
     like =  models.BooleanField()
 
+    class Meta:
+        unique_together = [('user', 'store')]
+
 
 @python_2_unicode_compatible
 class TeleImage(models.Model):
