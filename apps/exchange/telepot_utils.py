@@ -15,6 +15,8 @@ from telepot.text import apply_entities_as_markdown
 from .utils import get_object_or_none, trans, convert_str_to_list, mapping_restaurant
 from exchange.models import TeleUser, TeleGroup, TeleMembership, Bid, Rate, Restaurant
 from django.db.models import Q
+from .utils import chr_width, get_object_or_none
+
 
 
 class MessageHandler(UserHandler, AnswererMixin):
@@ -132,22 +134,36 @@ _换汇请注意安全，谨防诈骗。_
             }
         for r in restaurants.order_by('likes'):
             message += """
-%(city)s   %(name)s   %(category)s   %(phone)s %(action)s
+```
+%(city)s %(name)s %(category)s %(phone)s %(action)s
+```
             """ % {
                 "city": r.city,
                 "name": r.name,
                 "category": _(r.category),
                 "phone": r.phone,
-                "like": r.likes,
-                "dislike": r.dislikes,
-                "action": "[赞%s](tg://user?id=357468958) [踩%s](tg://user?id=357468958)" % (emoji.emojize(':thumbs_up:'),emoji.emojize(':thumbs_down:'))
+                # "action": "[赞%s](tg://user?id=357468958) [踩%s](tg://user?id=357468958)" % (emoji.emojize(':thumbs_up:'),emoji.emojize(':thumbs_down:')),
+                "action": "[赞%(up)s](t.me/oldsevenbot?start=like_%(store_id)s) [踩%(down)s](t.me/oldsevenbot?start=dislike_%(store_id)s)" %
+                    {"up": emoji.emojize(':thumbs_up:'), 
+                     "down": emoji.emojize(':thumbs_down:'),
+                     "store_id": r.id}
             }
         return message
 
     def plain_text(self, text, user, group):
         text_arr = convert_str_to_list(text)
         message = None
-        if text_arr[0] == '屏蔽':
+        if text_arr[0] == '/start':
+            if len(text_arr) == 2:
+                arr =  text_arr[1].split('_')
+                store = get_object_or_none(Restaurant, pk=arr[1])
+                if store:
+                    if arr[0] == 'like':
+                        ThumbsUp.create(user=user, store=store, like=True)
+                    else:
+                        ThumbsUp.create(user=user, store=store, like=False)
+
+        elif text_arr[0]  == '屏蔽':
             if user.is_admin and group:
                 group.ban_keywords = "|".join(text_arr[1:])
                 group.save()
