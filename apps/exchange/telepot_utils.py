@@ -119,7 +119,10 @@ _换汇请注意安全，谨防诈骗。_
             restaurants = Restaurant.objects.filter(
                 Q(category=text) | Q(city=text) | Q(name__contains=text)
             ).order_by('city', '-likes')
-
+        
+        if restaurants is None:
+            return _("No data found") 
+            
         message = """
 ```
 %(name)s   %(phone)s  %(appraise)s
@@ -276,18 +279,21 @@ _换汇请注意安全，谨防诈骗。_
                 message = apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
 
         elif len(text_arr) == 4:
-            old_stores = user.restaurants.all()
-            obj = Restaurant(creator=user, 
-                city=text_arr[0].strip().lower(), 
-                name=text_arr[1].strip().lower(), 
-                category=text_arr[2].strip().lower(), 
-                phone=text_arr[3].strip().lower())
-
-            if obj.save():
-                old_stores.delete()
-                message = _("%(name)s Create successfully!") % { "name": obj.name}
+            # old_stores = user.restaurants.all()
+            city=text_arr[0].strip().lower()
+            name=text_arr[1].strip().lower()
+            category=text_arr[2].strip().lower()
+            phone=text_arr[3].strip().lower()
+            if Restaurant.objects.filter(name=name):
+                message = _("Store already exists")
             else:
-               message = _("Invalid syntax")
+                obj = Restaurant(creator=user, city=city, name=name, category=category, phone=phone)
+
+                if obj.save():
+                    # old_stores.delete()
+                    message = _("%(name)s Create successfully!") % { "name": obj.name}
+                else:
+                    message = _("Invalid syntax")
 
         return message
 

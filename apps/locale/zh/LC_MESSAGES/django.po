@@ -228,10 +228,16 @@ msgstr "收录成功"
 msgid "Invalid syntax"
 msgstr ""
 "请使用如下格式录入店铺信息：地区 店名 经营类型 电话\n"
-"例如：阿里山 玛卡提 奶茶 0943234567\n"
-"经营类型可填写：早餐、午餐、晚餐、奶茶、水果等\n"
+"例如：玛卡提 阿里山 奶茶 0943234567\n"
+"经营类型可填写：早餐、午餐、晚餐、奶茶、水果、烧烤等等\n"
 "所属城市可填写：玛卡提、马尼拉、帕賽、BGC、阿拉邦等\n"
 "或城市英文名makati, pasay, bgc, alabang, manila, 不区分大小写"
 
 msgid "appraise"
 msgstr "评价"
+
+msgid "Store already exists"
+msgstr "商铺信息已存在，不能重复添加"
+
+msgid "No data found"
+msgstr "没有找到相关信息"

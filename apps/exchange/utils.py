@@ -62,12 +62,12 @@ def mapping_restaurant(text):
         "MILK TEA","FRUIT","MAKATI","玛卡提","玛卡蹄","玛卡题",
         "玛卡踢","马尼拉","码卡提","码卡提","玛卡提","PASAY","PASSAY",
         "怕赛","爬赛","帕赛","趴赛","曼达卢永","曼达卢勇",
-        "MANDALUYONG","BGC","阿拉邦","ALABANG"]
+        "MANDALUYONG","BGC","阿拉邦","ALABANG", "烧烤"]
 
     if text in arr:
         return True
 
-    if Restaurant.objects.filter(name__contains=text):
+    if Restaurant.objects.filter(Q(name__contains=text)|Q(category__contains=text)):
         return True
 
     return False
