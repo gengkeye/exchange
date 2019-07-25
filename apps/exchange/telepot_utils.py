@@ -278,10 +278,10 @@ _换汇请注意安全，谨防诈骗。_
         elif len(text_arr) == 4:
             old_stores = user.restaurants.all()
             obj = Restaurant(creator=user, 
-                city=text_arr[1].strip().lower(), 
-                name=text_arr[2].strip().lower(), 
-                category=text_arr[3].strip().lower(), 
-                phone=text_arr[4].strip().lower())
+                city=text_arr[0].strip().lower(), 
+                name=text_arr[1].strip().lower(), 
+                category=text_arr[2].strip().lower(), 
+                phone=text_arr[3].strip().lower())
 
             if obj.save():
                 old_stores.delete()
