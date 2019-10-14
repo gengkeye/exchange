@@ -10,6 +10,8 @@ from django.db.utils import ProgrammingError, OperationalError
 from django.core.cache import cache
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule
 from exchange.models import Restaurant
+from django.db.models import Q
+
 
 
 def convert_str_to_list(text, seperator=' '):

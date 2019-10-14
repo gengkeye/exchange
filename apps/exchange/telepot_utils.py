@@ -149,19 +149,19 @@ _换汇请注意安全，谨防诈骗。_
     def plain_text(self, text, user, group):
         text_arr = convert_str_to_list(text)
         message = None
-        if text_arr[0] == '/start':
-            if len(text_arr) == 2:
-                arr =  text_arr[1].split('_')
-                store = get_object_or_none(Restaurant, pk=arr[1])
-                if store:
-                    obj = ThumbsUp.objects.filter(user=user, store=store).first()
-                    if obj is None:
-                        obj = ThumbsUp(user=user, store=store)
-                    obj.like = True if arr[0] == 'like' else False;
-                    obj.save()
-                    message = "评价成功，感谢反馈！店铺%s已收获%s个赞，%s个踩" % (obj.store.name, obj.store.likes, obj.store.dislikes)
+        #if text_arr[0] == '/start':
+        #    if len(text_arr) == 2:
+        #        arr =  text_arr[1].split('_')
+        #        store = get_object_or_none(Restaurant, pk=arr[1])
+        #        if store:
+        #            obj = ThumbsUp.objects.filter(user=user, store=store).first()
+        #            if obj is None:
+        #                obj = ThumbsUp(user=user, store=store)
+        #            obj.like = True if arr[0] == 'like' else False;
+        #            obj.save()
+        #            message = "评价成功，感谢反馈！店铺%s已收获%s个赞，%s个踩" % (obj.store.name, obj.store.likes, obj.store.dislikes)
 
-        elif text_arr[0]  == '屏蔽':
+        if text_arr[0]  == '屏蔽':
             if user.is_admin and group:
                 group.ban_keywords = "|".join(text_arr[1:])
                 group.save()
@@ -173,8 +173,6 @@ _换汇请注意安全，谨防诈骗。_
             if trans(text_arr[0]):
                 message = self.query_price(text_arr[0], user)
 
-            elif mapping_restaurant(text_arr[0]):
-                message = self.query_restaurant(text_arr[0])
 
             elif text_arr[0] in ['即时汇率', '汇率']:
                 rates = Rate.objects.all().order_by('sell_currency')
@@ -256,6 +254,9 @@ _换汇请注意安全，谨防诈骗。_
             elif text_arr[0] == '帮助':
                 message = _("help_message")
 
+            #elif mapping_restaurant(text_arr[0]):
+            #    message = self.query_restaurant(text_arr[0])
+
         elif len(text_arr) == 2:
             if text_arr[0] == '删除报价' and trans(text_arr[1]):
                 Bid.objects.filter(user=user, sell_currency=trans(text_arr[1])).delete()
@@ -278,22 +279,22 @@ _换汇请注意安全，谨防诈骗。_
                 Bid.objects.create(sell_currency=sell, buy_currency=buy, price=price, user=user)
                 message = apply_entities_as_markdown(_("you created a new bid successfully!"), [{"offset":1, "length":10, "type": "bold"}])
 
-        elif len(text_arr) == 4:
-            # old_stores = user.restaurants.all()
-            city=text_arr[0].strip().lower()
-            name=text_arr[1].strip().lower()
-            category=text_arr[2].strip().lower()
-            phone=text_arr[3].strip().lower()
-            if Restaurant.objects.filter(name=name):
-                message = _("Store already exists")
-            else:
-                obj = Restaurant(creator=user, city=city, name=name, category=category, phone=phone)
+        #elif len(text_arr) == 4:
+        #    # old_stores = user.restaurants.all()
+        #    city=text_arr[0].strip().lower()
+        #    name=text_arr[1].strip().lower()
+        #    category=text_arr[2].strip().lower()
+        #    phone=text_arr[3].strip().lower()
+        #    if Restaurant.objects.filter(name=name):
+        #        message = _("Store already exists")
+        #    else:
+        #        obj = Restaurant(creator=user, city=city, name=name, category=category, phone=phone)
 
-                if obj.save():
-                    # old_stores.delete()
-                    message = _("%(name)s Create successfully!") % { "name": obj.name}
-                else:
-                    message = _("Invalid syntax")
+        #        if obj.save():
+        #            # old_stores.delete()
+        #            message = _("%(name)s Create successfully!") % { "name": obj.name}
+        #        else:
+        #            message = _("Invalid syntax")
 
         return message
 
